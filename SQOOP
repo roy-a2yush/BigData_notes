@@ -1,0 +1,189 @@
+import
+export
+eval: to perform queries on  the database
+
+sqoop command too list databases
+sqoop-list-databases \
+--connect "jdbc:mysql://quickstart.cloudera:3306" \
+--username retail_dba
+--password cloudera
+
+sqoop command to list tables inside a database
+sqoop-list-tables \
+--connect "jdbc:mysql://quickstart.cloudera:3306/retail_dba" \
+--username retail_dba \
+--password cloudera
+
+sqoop eval command
+sqoop-eval \
+--connect "jdbc:mysql://quickstart.cloudera:3306"  \
+--username retail_dba
+--password cloudera
+--query "select * from retail_db.customers limit 10"
+
+SQOOP INPORT
+============
+
+Special mapreduce job wherein only mappers work
+by default 4 mappers
+	They divide the work based on primary key
+	If there are no primary keys in the table:
+		1) Change the no. of mappers to 1
+		2) split by column
+
+command
+
+sqoop-import \
+--connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
+--username root \
+--password cloudera \
+--table orders \
+--target-dir /queryresult
+
+for making mapper-1
+
+sqoop-import \
+--connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
+--username root \
+--password cloudera \
+--table orders \
+-m 1 \
+--target-dir /queryresult1
+
+for importing all tables
+sqoop-import-all-tables \
+--connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
+--username root \
+--passsword cloudera \
+--as-sequencefile \
+--warehouse-dir /user/cloudera/sqoopdir
+
+NOTE:
+--query == --e
+--password <writePassword> == -P <enter>
+-m == --num-mappers
+
+Difference Between target directory and warehouse directory with an example
+WHEN DOES A BOUNDARY QUERY IN SQOOP IMPORT RUN?
+
+for importing all tables and directing the output of query and log messages to differenct files
+sqoop-import-all-tables \
+--connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
+--username root \
+--passsword cloudera \
+--as-sequencefile \
+--warehouse-dir /user/cloudera/sqoopdir 1>query.out 2>query.err
+
+
+--as-textfile
+--as-sequencefile
+--as-avrodatafile
+--as-parquetfile
+
+importa a table by compressing it
+sqoop-import \
+--connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
+--username root
+--password cloudera
+--table orders
+--compress
+--warehouse-dir /user/cloudera/compressed
+
+--compression-codec <code>
+
+importing a particular column from a table
+sqoop-import \
+--connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
+--username root \
+--password cloudera \
+--table orders \
+--columns customer_id,customer_fname,customer_city \
+--target-dir /queryresult2
+
+importing a table from the database with a condition
+sqoop-import \
+--connect jdbc:mysql://quickstart.cloudera:3306/retail_dba \
+--username root \
+--password cloudera \
+--table orders \
+--columns order_id,order_customer-id,order_status \
+--where "order_status in ('complete','closed')" \
+--warehouse-dir /user/cloudera/<filename>
+
+using split by
+sqoop-import \
+--connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
+--username root \
+--password cloudera \
+--table orders_no_pk \
+--split-by order_id \
+--warehouse-dir /user/cloudera/splitDir
+
+using split by on  non numeric column
+sqoop-import \
+-Dorg.apache.sqoop.splitter.allow_text_splitter=true \
+--connect jdbc:mysql://quickstart.cloudera:3306/retail_db \
+--username root \
+--password cloudera \
+--table orders_no_pk \
+--split-by order_name \
+--warehouse-dir /user/cloudera/splitDir
+
+sqoop import all tables but 2 tables don't have primary key
+sqoop-import-all-tables \
+--connect jdbc:mysql://quickstart.cloudera/retail_db \
+--username root \
+--password cloudera \
+--autoreset-to-one-mapper \
+--warehouse-dir /<some dir>
+
+target-dir doesnt work with target-dir
+
+--fields-terminated-by '|'
+--lines-terminated-by ';'
+
+create hive table with same schema as mysql table
+sqoop create-hive-table \
+--connection root \
+--password cloudera \
+--table orders \
+--hive-table emps \
+--fields-terminated-by-terminated by ';'
+
+--verbose
+will give a lot of log info
+--append
+in the end will append data to the target directory
+--delete-target-dir
+this will override
+--null-string "-1" --null-non-string "-1"
+if any string column value is null then change it to -1
+if any non string column value is null then change it to -1
+
+sqoop export 
+sqoop-export \
+--connect jdbc:mysql://quickstart.cloudera:3306/banking \
+--username root \
+--password cloudera \
+--table card_transactions \
+--export-dir /data/card_trans.csv \
+--fields-terminated-by ';'
+
+sqoop export to staging tables
+sqoop-export \
+--connect jdbc:mysql://quickstart.cloudera:3306/banking \
+--username root \
+--password cloudera \
+--table card_transactions \
+--staging-table card_transactions_stage \
+--export-dir /data/card_trans.csv \
+--fields-terminated-by ';'
+
+incremental Import
+ choices
+ 1) append mode: no updates in data, only new inserts
+ 2) last modified mode: when we need to capture updates also
+
+ --check-column (col) char not supported
+ --incremental (mode) append,lastmodified
+ --last-value (value)

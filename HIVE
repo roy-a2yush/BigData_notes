@@ -1,0 +1,932 @@
+Hivetable has 2 parts:
+1> Actual Data
+	Stored in HDFS
+	(/user/hive/warehouse)
+2> Metadata (Schema)
+	Hive metastore
+	Stored in database like mysql, because it will provide low latency and editability.
+	in HDFS we cananot do edits.
+	high latency.
+
+
+Hive is schema on read,
+RDBMS is schema on write
+
+Default directory
+/user/hive/warehouse/trendytech.db/employee/files
+set in hive-site.xml
+hive.metastore.warehouse.dir
+
+Built in function in HIVE
+1) UDF (user defined functions)
+	input -> one_row : output -> one_row
+		eg trim(),concat(),length(),round(),floor()
+2) UDAF (user defined aggregate functions)
+	input -> multiple_rows : output -> one_row
+		eg count(*),sum(),avg()
+3) UDTF (user defined table generating functions)
+	input -> one_row : output -> multiple_rows
+		eg explode(),posexplode()
+
+UNION removes duplicates
+UNION ALL preserves duplicates
+
+inside hive:
+	dfs -ls /<location>
+
+beeline -u jdbc:hive2://
+
+beeline -u jdbc:hive2:// -e "<query>"
+
+script with hql queries
+beeline -u jdbc:hive2:// -f <location>
+source <path>
+
+Types of tables in Hive:
+1. Managed Table
+	Hive has the complete control of your data
+	 if you drop the table, both data and metadata will get deleted.
+	 default
+2. External Table
+	Data is external to hive
+	 if you drop the table, metadata is dropped but the data is not dropped
+	 create external table if not exists <table_name>(
+	 )
+	 row format delimited
+	 fields terminated by ','
+	 stored as textfile
+	 location '/data/';
+
+3. Temporary table
+
+
+
+commands in hive:
+to create a table in hive to load .csv file into it
+create table if not exists hello(
+id string,
+title string,
+cost float
+)
+row format delimited
+fields terminated by ','
+stored as textfile;
+
+loading .csv file into it
+load data local inpath '/home/cloudera/<file_name>' into table hello       : copyPaste
+
+load data inpath '/home/cloudera/<file_name>' into table hello             : cutPaste
+
+load data inpath '/home/cloudera/<file_name>' overwrite into table hello 
+
+
+describe formatted <table_name>;
+
+
+COMPLEX DATATYPES IN HIVE:
+1> Array
+	Create table Phones(
+	id string,
+	title string,
+	cost array<float>,
+	colors array<string>,
+	screen_size array<float>
+	);
+
+	Insert into table Phones
+		Select "redminote7","Redmi Note 7",array(float(300),float(250)),array("white","silver","black"),array(float(6.6),float(5.5))
+		UNION ALL
+		Select "redminote8","Redmi Note 8",array(float(300),float(250)),array("white","blue","black"),array(float(6.6),float(5.5));
+
+	Select id, colors from Phones;
+	Select id, colors[0] from Phones;
+
+	Create table Phones(
+	id string,
+	title string,
+	cost array<float>,
+	colors array<string>,
+	screen_size array<float>
+	)row format delimited fields terminated by ',' collection items terminated by '#';
+
+			//If the file has more no. of columns than the table, it will not throw an error, rather, ignore the other columns in the file
+
+2> Maps
+Create table Phones(
+	id string,
+	title string,
+	cost array<float>,
+	colors array<string>,
+	screen_size array<float>
+	features map<string, boolean>
+	)row format delimited fields terminated by ',' collection items terminated by '#' map keys terminated by ':';
+
+	Select id, colors[0],features['camera'] from Phones;
+
+3> Struct
+Create table Phones(
+	id string,
+	title string,
+	cost array<float>,
+	colors array<string>,
+	screen_size array<float>,
+	features map<string, boolean>,
+	information struct<battery:string,camera:string>
+	)row format delimited fields terminated by ',' collection items terminated by '#' map keys terminated by ':';
+
+	Select id, colors[0],features['camera'], information.battery from Phones;
+
+4> Union (raraely used)
+
+
+select explode book_names from books;
+
+using explode, but joining it with some other column:
+select author_name,book_names from books lateral view explode(book_names) book_table as b_name;
+
+table1		author_details
+join 		lateral view
+table2		explode(book_names)
+alias name of table2 is	book_table
+b_name is the column name in virtual table books_table
+
+
+UDF
+
+package udf_example;
+import org.apache.hadoop.hive.ql.exec.UDF;
+public class DataStandardisation extends UDF {
+	public String evaulate(String s) {
+		if(s==null)
+			return null;
+		else
+			return (s.toString().toUppeCase());
+	}
+}
+
+
+Temporary
+	ADD JAR /home/cloudera/Desktop/udf_example.jar
+	create temporary function standardize as 'udf_example.DataStandardisation'
+												package_name
+
+Permanent
+	Create Function standardize_permanent as
+	'udf_example.DataStandardisation' using JAR
+	'hdfs://localhost:8020/user/cloudera/udf_example.jar'
+
+
+OPTIMIZATIONS:
+	1) Structural level
+		partitioning and bucketing
+	2) Query level
+		(JOIN OPTIMIZATION)
+	3) syntactical level
+		windowing functions
+
+
+PARTITIONING:
+	low cardinality
+	2 types:
+		Static- when we knoww the data inn advance..
+				load data manually
+				faster
+				not scalable
+
+					create table orders_w_partition(
+						id string,
+						customer_id string,
+						product_id string,
+						quantity int,
+						amount double,
+						zipcode char(5),
+					)
+					partitioned by (state char(2))
+					row format delimited fields terminated by ',';
+
+					load data local inpath 'home/cloudera/Downloads/orders_CA.csv'
+					into table orders_w_partition
+					partition (state='CA');
+
+					load data local inpath 'home/cloudera/Downloads/orders_CT.csv'
+					into table orders_w_partition
+					partition (state='CT');
+
+					show partitions orders_w_partition;
+
+		Dynamic- hive automatically creates partition on the data
+	each partition is a folder
+			#3step process
+	If no. of partition exeeds a certain default value, hive will throw and error
+
+					SET hive.exec.dynamic.partition=true;
+					SET hive.exec.dynamic.partition.mode=nonstrict;
+
+					create table orders_no_partition(\
+						id string,
+						customer_id string,
+						product_id string,
+						quantity int,
+						amount double,
+						zipcode char(5),
+						state char(2)
+					)
+					row formata delimiter fields terminated by ',';
+
+					load data local inpath 'home/cloudera/Downloads/orders_CT_with_state.csv'
+					into table orders_no_partition;
+
+					create table orders(
+						id string,
+						customer_id string,
+						product_id string,
+						quantity int,
+						amount double,
+						zipcode char(5),
+					)
+					partitioned by (state char(2))
+					row format delimited fields terminated by ',';
+
+					insert into table orders
+					partition (state)
+					select * from orders_no_partition;
+
+				PARTITION ON 2 COLS
+					create table all_orders(
+							id string,
+							customer_id string,
+							product_id string,
+							quantity int,
+							amount double,
+							postal_code string
+					)
+					partitioned by (country string, state string)
+					row format delimited fields terminated by ',';
+
+BUCKETING:
+	high cardinality
+	fixed no. of buckets need to be defined during creation
+	each bucket is a file
+	faster Join operations
+	faster query runs
+
+partitioning+bucketing
+!(buckekting+partitioning)
+
+					create table products_no_buckets(
+						id int,
+						name string,
+						cost double,
+						category string
+					)
+					row format delimited fields terminated by ',';
+
+					load data local inpath '/home/cloudera/Downloads/newproducts.csv'
+					into table products_no_buckets;
+
+					SET hive.enforce.bucketing=true;
+
+					create table products_w_buckets(
+						id int,
+						name string,
+						cost double,
+						category string
+					)
+					CLUSTERED BY (id) INTO 4 BUCKETS;
+
+					from products_no_buckets
+					insert into products_w_buckets
+					select id, name, cost, category;
+
+					No. of reducers = no. of buckets
+
+					select * from products_w_buckets
+					TABLESAMPLE(bucket 1 out of 4);
+
+
+		PARTITION & BUCKET ---
+					create table products_partitioned_buckets(
+						id int,
+						name string,
+						cost double
+					)
+					partitioned by (category string)
+					clustered by (id) into 4 buckets
+					row format delimited fields terminated by ',';
+
+					insert into products_partitioned_buckets
+					partition (category)
+					select id, name, cost, category
+					from products_no_buckets;
+
+
+
+
+JOIN OPTIMIZATIONS:
+	1) Use partitioning and bucketinng
+	2) minimize mapreduce job by minimizing the join columns
+	3) map side joins
+		all table except 1 should be small enough to fit in memory
+		local task before mapreduce job:
+			take small table and create a hashtable
+			put on hdfs
+			broadcasted to all other nodes
+			it will be stored in local disk of each node
+				DISTRIBUTED CACHE
+			from local disk it is loaded in memory
+			Mapreduce starts
+
+				SET hive.auto.convert.join=false; //no map side join
+				SET hive.auto.convert.join=true; //yes map side 
+
+				What is small?
+					Any table which is less than 25 mb is small (default)
+					SET hive.mapjoin.smalltable.filesize;
+				THIS IS AUTOMATIC:
+					SET hive.auto.convert.join=true;
+
+
+				FOR MANUAL, using hints:
+					SET hive.auto.convert.join=false;
+					SET hive.ignore.mapjoin.hint=false;
+
+				SELECT /*+ MAPJOIN(o) */ c.customer_id, c.customer_fname, c.customer_lname, o.order_id, o.order_date FROM orders o JOIN on customers c ON (o.order_customer_id = c.customer_id) LIMIT 5;
+
+				SELECT /*+ MAPJOIN(c) */ c.customer_id, c.customer_fname, c.customer_lname, o.order_id, o.order_date FROM orders o LEFT OUTER JOIN on customers c ON (o.order_customer_id = c.customer_id) LIMIT 5;
+
+					SELECT /*+ MAPJOIN(o) */ c.customer_id, c.customer_fname, c.customer_lname, o.order_id, o.order_date FROM orders o RIGHT OUTER JOIN on customers c ON (o.order_customer_id = c.customer_id) LIMIT 5;
+
+
+
+
+
+
+	4) bucket map join
+		This can work on 2 big tables also
+			Conditions:
+				-> Both the table should be bucketed on Join column
+				-> No. of tables in one table should be an integral multiple of no. of buckets in another table
+
+			before mapreduce it will run a local task
+				a hashtable is created
+				moved to hdfs
+				from hdfs broadcasted to all machines
+				DISTRIBUTED CACHE
+				Only 1 bucket has to be loaded in memory
+
+				PRACTICALS:
+					SET hive.enforce.bucketing=true;
+					SET hive.auto.convert.join=true;
+					SET hive.optimize.bucketmapjoin=true;
+
+					Select c.customer_id, c.customer_fname, c.customer_lname, o.order_id, o.order_date, FROM customers_bucketed c JOIN orders_bucketed o ON (c.customer_id = o.customer_id) LIMIT 10;
+
+
+
+	5) SMB (Sort Merge Bucket Join)
+		This can work on 2 big tables
+			Conditions:
+				-> Both the table should be bucketed on Join column
+				-> No. of tables in one table should exactly match the no. of buckets in another table
+				-> Both the tabbles should be sorted based on join column
+
+				Good books says this
+				No memory constraint:
+					mapper 1 can work on bucket1 table1 and bucket 1 table2
+					mapper 2 can work on bucket2 table1 and bucket 2 table2
+					.
+					.
+
+				PRACTICALS:
+					set hive.auto.convert.sortmerge.join=true;
+					set hive.auto.convert.sortmerge.join.noconditionaltask=true;
+					set hive.optimize.bucketmapjoin=true;
+					set hive.optimize.bucketmapjoin.sortedmerge=true;
+					set hive.enforce.bucketing=true;
+					set hive.enforce.sorting=true;
+					set hive.auto.convert.join=true;
+
+					EXPLAIN EXTENDED Select c.customer_id, c.customer_fname, c.customer_lname, o.order_id, o.order_date, FROM customers_bucketed c JOIN orders_bucketed o ON (c.customer_id = o.customer_id) LIMIT 10;
+
+
+WINDOWING FUNCTIONS:
+	Syntactic sugar
+	reducer need or intermediate tables
+
+	Figure out
+		window size and operation
+
+	from groceries
+	select id, revenue, day, sum(revenue), over( order by day
+	rows between unbounded preceding and current row) as running_total;
+	//unbounded preceding means: first row
+
+		above query is same as
+
+	select id, revenue, day, sum(revenue), over( order by day ) as running_total;
+
+		as default behavior is from top row it will consider the current row.
+
+	FOR AVG
+	select id, revenue, day, avg(revenue), over( order by day
+	rows between unbounded preceding and current row)as running_total;
+
+
+	for each day running total:
+		select id, revenue, day, sum(revenue) over (partition by day order by id) as running_total;
+
+	revenue total for each day without order by key specified
+		from groceries
+		select id, revenue, day, sum(revenue) over (
+			partition by day
+		)
+		as running_sum;
+
+		// if you don't give order by clause window size will be from first row to the last row
+			default: rows between unbounded preceding to unbounded following.
+
+	for moving window
+		from groceries1
+			select id, revenue, day, avg(revenue) over(
+			order by id
+			rows between 3 preceding and current row)
+		as running_average;
+		//consider 4 rows including current
+		
+
+RANKING IN HIVE:
+	rank() -> normal rank 1,1,1,4,..
+		Select name,score,rank() over(order by score desc) as ranking from rank_test;
+	dense_rank() -> 1,1,1,2,2,3,4,...
+		Select name,score,dense_rank() over(order by score desc) as ranking from rank_test;
+	row_number() -> unique rank 1,2,3,4,5,...
+		Select name,score,row_number() over(order by score desc) as ranking from rank_test;
+	row_number() with partition by -> for same name different ranks
+		Select name,score,row_number() over(partition by name order by score desc) as ranking from rank_test;
+
+SORTING IN HIVE:
+	order by:
+		guarantees total ordering
+		1 reducer is used
+			if hive.mapred.mode=strict -> need to give a limit
+
+	sort by:
+		may use more than one reducer
+		no guarantee of total ordering
+		no. of reducers can be set in:
+			set hive.exec.reducers.bytes.per.reducer (250 mb)
+			set mapred.reduce.tasks      //-1: if set to -1 previous property will be used, else this property will be used
+		sort by does not guarantee, 1 value will go to 1 particular reducer
+
+	distribute by
+		ensures each reducer gets non-overlapping set of values
+		no sorting
+		for sorting use distribute by <> order by <>
+
+	cluster by
+		distributed by + sort by = cluster by
+
+
+
+
+
+
+	FILE FORMATS IN HIVE
+	Thinngs to be takes care  of:
+		1) faster reads
+		2) faster writes
+		3) Splittable
+		4) Schema evolution support
+		5) Advanced compression
+		6) Most compatible platform
+
+	divided into 2 broad categories:
+		1. Row based: good for writting; but if it has to get a subset of columns, then it has to read entire record; not good for compression
+			faster writes
+			slower reads (when you want to read a subset of columns)
+			less compression
+		2. Column based: writing is costly; datawarehousing kind of query where we want to get a subset of columns, then it does not have to read entire record; good for compression.
+			slower writes
+			efficient reads
+			more compression
+
+
+		Text File format:		(human readable)
+			xml, Json - even some small schema is attached
+			csv - raw files
+
+			CSV file
+			========
+				Everything is stored as a text, even *numbers*
+					1234567 -> 14bytes
+					If 1234567 was stored as integer, it would be 4bytes
+				Drawback:
+					A lot of storage required.
+					Converting a string into integer takes a lot of time (Overhead of type conversion)
+					Bad in terms of I/O.
+
+			XML & JSON
+			==========
+				All drawbacks of CSV
+					+
+				This files are not splittable
+
+		#Specialised file formats:
+		=========================
+		-Serializability: converting the data into a form which can be easily transferred over the network and be stored in files 
+			Avro
+			ORC
+			Parquet
+				All are splittable, and any compression techniques can be used with them.
+				The compression codec is kept in metadata of the file. So whenever the reader wants to read he gets to know this compression codec from metadata and can easily understand this data.
+
+			Avro
+			====
+				- row based
+				- faster writes
+				- slower reads (when you want to read a subset of columns)
+				- less compression
+				- schema for avro file is stored in Json form
+					this data is self describing, as the metadata is embedded as part of your data itself
+				-STORAGE
+					the actual data is stored in binary format which is quite storage efficient
+				-MOST COMPATIBLE PLATFORM
+					Language neutral
+				-SCHEMA EVOLUTION (Addin/removing/renaming column)
+					quite matured. No other file format which is better.
+				- best fit for storing data in the landing zone of a data lake
+				- so, whenever we do ETL kind of operation, avro is a good fit because we have to read the entire record. Not a subset of columns
+				-splittable
+				- best suited with Kafka
+
+			ORC
+			===
+				- Optimized Row Columnar file format
+				- Column based file format
+				- writes not efficient
+				- reading subset of column efficient
+				- Highly efficient in terms of storage
+				- uses Lightweight compression-> Dictionary encoding, bit packing, delta encoding, run length encoding, along eith generalized compression techniques like snappy, lzo, gzip.
+					>Dictionary encoding
+				- Predicate pushdown is provided
+						Inside where clause whatever conditions we put are called as predicates.
+						ORC pushes the predicates at the storage level.
+				- ORC is best fit for hive
+						Specially designed for hive
+						Supports all complex datatypes
+				- SCHEMA EVOLUTION
+					- supports Schema evolution, but it is not as mature as Avro
+					- metadat in case of ORC is stored in protocol buffers, which allow addition or removal of data.
+				ORC file is divided into 3 parts:
+					> Header - "ORC"
+					> Body - made up of stripes of data -> Even these stripes are divided into blocks of data.
+								by default there are 10000 rows in each block (row group)
+							 By default size of stripes are 250mb
+							 	Stripe
+							 	======
+							 		there are 3 parts:
+							 			1. set of indexers - max, min, count
+							 				stripe 1: row-group1: empid min 102 max 560
+							 				stripe 1: row-group2: empid min 789 max 1020
+							 			2. the data itself broken into row groups
+							 			3. stripe footer - encoding used
+					> Tail - 2 parts
+								1. file-footer
+									file level info
+										empid min: 1, max: 6897334
+									stripe level info
+										stripe 1: row-group1: empid min 102 max 560
+							 			stripe 1: row-group2: empid min 789 max 1020
+
+							 	2. post script
+							 		compression is snappy
+							 		- never compressed by itself
+							 		- helps to understand the remaining file
+
+					- file level and stripe level data are kept in file footer
+					- row level data is kept in stripe footer
+					- best suited with hive
+
+				
+
+			PARQUET
+			=======
+				- column based
+				- writes not efficient
+				- reading subset of columns is very efficient
+				- very good for handling nested data
+				- splittable
+				- shares many design goals with orc, but it is more general purpose
+				- compression is efficient
+				- stores the metadata at the end of the file, like orc and hence is self describing.
+				- supports schema evolution to some extent:
+						only supports reading and deleting from the end
+				- best suited with spark
+
+				- parquet file is divided into 3 parts:
+					1. header - "par-1"
+					2. Row groups -> column chunks
+						<col1 chunk1 + metadata>
+						<col1 chunk2 + metadata>
+						<col1 chunkN + metadata>
+
+						<col2 chunk1 + metadata>
+						<col2 chunk2 + metadata>
+						<col2 chunkN + metadata>
+
+							col chunk is divided into pages
+							If there are 5 columns inside each chunk there will be 5 columns
+					3. footer
+						3 parts:
+							1. file metadata
+							2. length of file metadata
+							3. PAR1
+
+
+
+
+		AVRO v/s PARQUET
+		================
+			Row based 																	Column based
+			slower reads																faster reads
+			faster writes																slower writes
+			mature in schema EVOLUTION 													only at the end
+			deeply nested data structues NO 											deeply nested data structures YES
+
+
+		ORC 																			PARQUET
+		===																			 	=======
+		deeply nested DS NO 															deeply nested DS YES
+		predicate pushdown																no predicate pushdown
+		ACID 																			NO
+		compression better 																compression good but not like ORC
+
+
+
+
+
+	HIVE COMMANDS WITH FILE FORMATS
+	===============================
+
+		ORC:
+
+			CREATE TABLE orders_orc(
+				id bigint,
+				product_id string,
+				customer_id bigint,
+				quantity int,
+				amount double
+			) stored as orc;
+
+			INSERT INTO orders_orc Select * from orders;
+
+			to see the details of the file
+				hive --orcfiledump "File path"
+			to see data properly
+				hive --orcfiledump -d "file path"
+
+		PARQUET:
+
+			CREATE TABLE orders_parquet(
+				id bigint,
+				product_id string,
+				customer_id bigint,
+				quantity int,
+				amount double
+			) stored as parquet;
+
+			INSERT INTO orders_parquet Select * from orders;
+
+			parquet-tools meta 00000_0 //after getting it in local
+			parquet-tools cat 00000_0 //data
+
+
+		JSON
+		====
+			- No in-buitl support for JSON in Hive.
+			- Use serde
+					Serde: Serialization + Deserialization
+							Serialization:
+								Converting data to a form that can be transferred over a network and store it in the form of file.
+							Deserialization:
+								COnverting data from a form that can be transferred over a network to a form that is human readable.
+
+							in case of java:
+								Serialization: converting from object to bytes
+								Deserialization: converting from bytes to objects
+							in hive:
+								when sending and storing the data hive converts it to a form which is feasible for this
+								stored as row
+								and when reading it, it tries to break it in columns which it can understand
+								breaks it into columns
+
+			download a jar
+				add jar "path"
+
+				CREATE TABLE orders_json(
+					id bigint,
+					product_id string,
+					customer_id bigint,
+					quantity int,
+					amount double
+				) row format SERDE 'org.openx.data.jsonserde.JsonSerDe';
+
+				Insert overwrite table orders_json select * from orders;
+
+			1. csv file will be stored in hdfs
+			2. create a hive table on top of csv
+			3. create a table for the same with optimizations in a good file format.
+			4. Insert data from table1 to table2
+			5. delete table1
+
+
+	COMPRESSION TECHNIQUES
+	======================
+		reasons for compression:
+			1. save storage
+			2. process data faster
+			3. reduce I/O cost
+
+		Compression and un-compression has some cost
+			However in front of I/O gains it is negligible
+
+		4 imp compression techniques:
+			1. Snapppy
+			2. lzo
+			3. gzip
+			4. bzip2
+
+		Some compression techniques are optimized for storage
+		others are optimized for processing
+			trade off:
+				if we want more compression ratio, we have to spend more time on compression
+
+		SNAPPY
+		======
+			- fast
+			- compression okayish
+			- good balance between compression ratio and speed
+			- optimized for speed rather than storage.
+			- by default not splittable
+			- container based file formats, like avro, orc, parquet, have no problem
+
+		LZO
+		===
+			- optimized for speed like snappy
+			- inherently splittable
+
+		GZIP
+		====
+			- optimized more for storage rather than processing
+			- not splittable
+			- should be used with container based file format
+			- we can ideally reduce the block size so that there will be more no of blocks hence more parellelism
+			- 2.5times more compression than snappy
+
+		BZIP2
+		=====
+			- optimized for storage
+			- very very slow
+			- splittable
+			- 9times better compression than GZIP
+			- 10times slower than GZIP
+
+
+	HIVE VECTORIZATION:
+	==================
+		a standard query processes 1 row at a time,
+		vectorized queries will run on batches of 1024 rows by default.
+
+		TO USE VECTORIZATION DATA SHOULD BE IN ORC FORMAT
+			set hive.vectorized.execution.enabled=true;
+
+		//explain query;
+
+	CHNAGING THE HIVE ENGINE:
+	========================
+		3 compute engines supported in hive:
+			1. mr
+			2. tez
+			3. spark
+
+			set hive.execution.engine=spark;
+
+
+	MSCK repair:
+	===========
+		will add the corresponding metadata for hive table.
+		msck repair table TN;
+
+
+
+
+
+	Apache thrift server/service
+	============================
+		no hadoop, not sitting on an edge node
+		but you can connect to the edge node using various programming clients
+			java client
+			python client
+		it can be be done witht he help of thrift service.
+
+
+	SCD in Hive
+	===========
+	 Slowly Changing Dimensions/Change Data Capture(CDC)
+	 	If mysql table is changing, (not frequently), we need to sync it with mysql table
+	 	Two major types od SCDs
+	 		1. SCD type 1: Sync, forget history of previous data
+	 			Overwrite old data with new data
+	 				Extremely simple
+	 				easy way to synchronisze reporting systems(hive)
+
+	 					Create 2 tables: table2, table3;
+	 					- table 3 is updated table, table 2 is normal table
+	 					- Consider all updates in table 3, but no deletes
+	 					- query
+
+	 							Select
+	 							case when cdc_codes = 'Update' then table3s
+	 							when cdc_codes = 'NoChange' then table2s
+	 							when cdc_codes = 'New' then table3s
+	 							when cdc_codes = 'Deletes' then table2s
+	 							end from(select
+	 							case when table2.col1=table3.col1 and table2.col2=table3.col2 then 'NoChange'
+	 							when table2.col1=table3.col1 and table2.col2<>table3.col2 then 'Update'
+	 							when table2.col1 is Null then 'New'
+	 							when table3.col1 is null then 'Deletes'
+	 							end as cdc_codes concat(table2.col1,',',table2.col2) as table2s, concat(table3.col1,',',table3.col2) as table3s
+	 							from table2
+	 							full outer join table3 on table2.col1=table3.col1) as b1;
+
+
+
+	 		2. SCD type 2: Sync, maintain the history as well.
+	 			Add new rows with version history
+
+	 				3 ways:
+	 					1> Versioning (versions 1,2,3,..)
+	 					2> Flagging (old records flag = 0, new record flag = 1)
+	 					3> Effective date (Start date and end date)
+
+
+
+	 MISCELLANEOUS
+	 =============
+	 	> no drop feature for a table
+	 		alter table TN enable no_drop;
+			alter table TN disable no_drop;
+			alter table TN partition(<partition name(deptname='HR')>) enable no_drop;
+			
+		> offline feature for a table
+			- restricting a table from being queried;
+			alter table TN enable offline;
+			alter table TN disable offline;		
+
+		> skipping header rows
+			- considering data after n lines
+			<Table creation statement> tblproperties("skip.header.line.count"='n');
+													 "skip.footer.line.count"
+
+		> making table immutable
+			- no modifying, overwritting possible
+			tblproperties("immutable"="true");
+
+		> drop v/s truncate v/s purge
+			- when we drop a managed table, both data and metadata will be deleted.
+			- when we drop an external table, metadata will be deleted data will not be deleted.
+
+			- all data is deleted, metadata is kept
+
+			- if purge is set to true tblproperties("auto.purge"="true");
+				after deletion all data permanently gone.
+			- if purge is set to false tblproperties("auto.purge"="false");
+				after deletion data can still be recovered by hadoop admins(will goto trash)
+
+		> treating empty strings as null:
+			- "" <> Null
+			tbleproperties("serialization.null.format"="");
+
+		> hadoop commands from within hive
+			dfs <command>;
+
+		> linux commands from within hive
+			!<command>
+
+		> hive variable
+			set hivevar:<variable_name>=<value>;
+			set <variable_name>; //to view
+
+			${<variable_name>} //to use
+
+		> printing headers along with table
+			set hive.cli.print.header;
+			set hive.cli.print.header=true;
+
+		> cartesian product
+			select * from table1,table2;
+
+		> UDFs are not optmized
+			keep UDFs on the right most side so that it has to work in less data.
+			eg: column1 = 10 AND myUDF(column2) = 'x';	//use this
+				myUDF(column2) = 'x' AND column1 = 10;	//dont use this
