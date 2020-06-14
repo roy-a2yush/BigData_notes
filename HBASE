@@ -1,0 +1,31 @@
+HBASE
+
+4 requirement of a database
+	1> structured manner
+	2> Random access
+	3> Low latency
+	4> ACID
+		Atomicity: Either all should happen o none should happen
+		Consistency: no constraints violated
+		Isolation: locks
+		Durability: no loss of data
+
+HBASE: is a distributed database management system that runs on top of hadoop
+	1> Structure: loose structure
+	2> Low latency: real time access using row keys
+	3> Random access: row keys
+	4> ACID: Some transactions eil have ACID compliance
+
+HBASE:
+	1> quick searching
+	2> quick processing
+data stored in columnar manner
+denormalization is preferred
+join, group by, order by not supported.
+only CRUD-Create Read Update Delete operations are supported
+ACID compliant at row level
+2dimensional data model in traditional databases, here 4-dimensional data model
+	1> Row key
+	2> Column family
+	3> Column
+	4> Timestamp
