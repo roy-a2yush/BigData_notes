@@ -1,0 +1,19 @@
+CASSANDRA
+=========
+
+NoSql Distributed column based database which is highly performant
+Highly scalable
+AP system
+separate cluster
+decentralised p2p architecture 
+for communication among themselves they use gossip protocol
+No down time; highly available
+CQL
+
+Data fetching:
+	Client asks for data to one of the nodes.
+	Tunabe consistency:
+		return result if 1 node has result (default)
+		return result if 3 nodes agree on the result (quorum)
+		return result if all nodes agree on the result (all nodes)
+	The node checks the requested data in 1(default),2,3,... nodes and returns it

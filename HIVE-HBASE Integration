@@ -1,0 +1,12 @@
+HIVE-HBASE Integration
+======================
+	creating a table which can be accessed by both hive as well as Hbase.
+
+	Step 1: create hive table
+		Create table pokes(foo int, soo string)row format delimited fields terminated by ',';
+	Step 2: load data local inpath
+		Load data local inpath '/home/cloudera/Desktop/input1.txt' overwrite into pokes;
+	Step 3: create hbase table managed by hive
+		CREATE TABLE hives_pokes_hbase(key int, value string) STORED BY 'org.apache.hadoop.hive.HBaseStorageHandler' WITH SERDEPROPERTIES ("hbase.columns.mapping"=":key,cf1:val") TBLPROPERTIES ("hbase.table.name"="xyz"); //Hbase=>xyz; Hive=>hives_pokes_hbase
+	Step 4: load data from normal hive table to the special table
+		INSERT OVERWRITE TBALE hives_pokes_hbase SELECT * FROM pokes where foo = 98;

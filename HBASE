@@ -29,3 +29,176 @@ ACID compliant at row level
 	2> Column family
 	3> Column
 	4> Timestamp
+Row key: All data is kept in form of sorted byte array
+Column Family: All rows have the same set of column family.
+			   Each column family is stored in a separate file.
+			   each column family will have the same no. of rows
+Column: within column family.
+		new columns added on the fly
+		ColumnFamily:ColumnName
+Timestamp: versions
+
+
+CAP Theorem:
+============
+	Consistency
+	Availability
+	Partition tolerance
+
+	CAP theorem says out of these 3 any system can have only 2.
+
+		Consistency: each node will hold the latest value
+		Availability: System always gives response
+		Partition tolerance: system will continue to operate even where there is network failure(must in distributed systems)
+
+	CA: RDBMS
+	CP: HBase, MongoDB
+	AP: Cassandra, DynamoDB
+
+
+
+HBASE ARCHITECTURE
+==================
+	region server: 1 data node, 1 region server
+
+	region: contains data sorted on the basis of row keys. 1 or more regions in each region server.
+
+	memstore: every insert is appended in the memory. When the memory grows beyond a certain threshold size, then the contents of memstore will be flushed to a file. For each region separate memstore for each column family
+
+	wal: Write ahead log (on disk) If server crashes, inserts can be seen in this log. 1 per region server
+
+	block cache: Whenever data is read, it is also cached in memory for future reads. 1 per region server
+
+	hfile: memstore flushed to hfile, stored in hdfs
+		   divided into blocks, based on indexes we can know which block holds the data
+		   immutable
+
+	zookeeper: open source coordinator for distributed systems. Heartbeat, hold location of metatable(holding mappings of region and region servers, present in one of the region server)
+
+	hmaster: HBase has a master slave architecture. Hmaster id master, region server is slave. Load balance
+			 1 or more hmaster, only 1 will be active others will be passive
+			 DDL operations
+			 Recovery
+			 Load balancing
+			 Coordinating with region servers
+
+
+META TABLE
+==========
+	Mapping of regions and region server
+
+READ Steps:
+	1> Block cache
+	2> Memstore
+	3> Zookeper
+	4> Meta-table
+	5> cache region server info
+	6> Region server
+	7> Region 
+
+WRITE Steps:
+	1> WAL
+	2> Memstore
+	3> Hfile
+	4> Ack back to the client
+
+COMPACTION
+==========
+	Lot of Hfiles:
+		1> Read slow
+		2> Inconsistency, redundancy
+	Combining small Hfiles to large Hfiles
+		1> Major compaction: all Hfiles are picked and written into a single large Hfile(resource intensive)(done when traffic is min)
+		2> Minor compaction: picks some small Hfiles and rewrites them into large Hfiles
+
+
+UPDATE IN HBASE
+===============
+	timestamp/versioning
+
+DELETING IN HBASE
+=================
+	record masked by assigning tombstone marker to it
+	Removed in next major compaction
+
+
+PRACTICALS
+=================================================================
+
+hbase shell
+
+To list tables
+==============
+list
+
+
+To check status of the services
+===============================
+sudo service --status-all
+
+To start a service
+==================
+sudo service hhase-master restart
+
+To create table with column families
+====================================
+create 'students','personal_details','contact_details','marks'
+
+To populate table
+=================
+put 'students','student1','personal_details:name','Aayush'
+put 'students','student1','personal_details:email','roy.a2yush@gmail.com'
+
+To see contents of table
+========================
+A range of rows or all rows:
+	scan 'students'
+
+Subset:
+	scan 'students', {COLUMNS=>[personal:name], LIMIT=>1, STARTROW="2", STOPROW="3"}
+	get 'students','student1'
+	get 'students','student1',{COLUMN=>'personal_details'}
+	get 'students','student1',{COLUMN=>'personal_details:name'}
+
+To delete
+=========
+delete 'students','student1','personal_details:email'
+
+describe 'students'
+===================
+describe 'students'
+
+if table exists
+===============
+exist 'students'
+
+drop a table
+============
+disable 'students'
+//flushes memstore to hfile
+
+drop 'students'
+
+Filter commands
+===============
+1. Value Filter:
+----------------
+	scan 'students',{FILTER=>"ValueFilter(=,'binary:Maria')"}
+
+2. Qualifier Filter:       Column inside any column family
+--------------------
+	scan 'students',{FILTER=>"QualifierFilter(=,'substring:Name')"}
+
+3. Family Filter:          Column Family
+-----------------
+	scan 'students',{FILTER=>"FamilyFilter(=,'substring:profession')"}
+
+Count row keys
+==============
+count 'students'
+
+
+APACHE PHOENIX
+==============
+gives a sql interface on top of nosql
+works on top of hbase, wherein you can use sql like queries
