@@ -1,0 +1,200 @@
+INTRODUCTION TO SPARK
+
+	Spark is a plug and play, general purpose, in memory compute engine.
+	
+	
+	In hadoop core we had
+		HDFS		MR		YARN
+		Storage		Compute		ResoureManager
+		
+	Spark can be considered as a replacement for MR.
+	Not hadoop.
+	
+		We can use:
+			HDFS	Spark	YARN
+		
+		
+	You bring any storage any resource manager i will work. like mesosphere, kubernete.
+	
+	
+	
+	Why is it 10 to 100 times faster than MR?
+		
+		
+		HDFS:-
+			Take input from hdfs, keep it in memory, process it, and then the result is written back into HDFS.
+			In industry we mainly use, a chain of mapreduce.
+			So, the output of mapreduce is not fed into another mapreduce, but into HDFS, and fetch that data from the HDFS again.
+			E.g.	For 10 MR jobs in a chain, 20 disk i/o is required.
+				It is a I/O heavy job.
+				
+			This is the most important limitation of MR.
+			
+		This is why there was a need of thinkng of other computation ways which is better than this.
+		
+	Using Spark, we load the data once, and do whatever we want to do, any no. of processing and then finally write it to HDFS.
+		E.g.	Now, for 10MR tasks we need only 2 disk I/O.
+		
+	Spark is much for generic as it gives build in functions too.
+	We are not just limited to MR, we can think of other approaches as well, thus it brings flexibility.
+	
+	
+	What is RDD?
+	
+		The basic unit which holds the data in Spark is called RDD-  Resilient DIstributed dataset.
+		
+		Consider you have a cluster of 4-nodes.
+			Total storage across all the 4 nodes is termed as HDFS.
+			
+			All blocks of data in the HDFS is moved into their respective memories. By, memories i mean RAM
+			Now, all the blocks moved into the memory makes RDD.
+			That is why it is "distributed dataset", and that it is "in memory".
+			
+		
+	Program flow:
+		(pseudo code)
+				
+			1>	RDD1 = sc.textfile("hdfs path")		//first RDD that we create is called a base RDD.
+			2>	RDD2 = RDD1.filer("code")
+			3>	RDD3 = RDD2.map("code")
+			4>	RDD3.collect()
+				
+			When "1" is executed nothing actually happens. Internally, the framework will just create a diagram of transformations that needs to 	happen. This diagram is called DAG: Directed Asymetric graph.
+			Similarly, "2", "3" will also create a diagram internally, but no processing happens.
+			At "4" the processing happens according to the diagram.
+			
+			2 kinds of operations in Spark:
+				i> Transformation: Tasks which converts RDD and performs execution			//All transformations are lazy
+				ii> Action: Trigger for operations to occur. To see the results				//Actions are not, they are a sort of trigger.
+				
+				
+				operations in "1", "2", "3" are transformations.
+				operation in "4" is action.
+				
+				DAG: Directed Asymetric graph, is basically an execution plan
+					during transformation: Execution plan is made, and appended to.
+					during action: Execution plan which was made by tranformations are now processed.
+					
+		Why would a spark developer make transformations lazy?
+			Let's take a scenario, that transformation is not lazy.
+				So, in the first line of code we bring a file of say 4gb in memory, and Spark does that.
+				Now, second line, we print the first line.
+					So, memory is not used efficiently.
+					We, brought 4gb file in memory just to print the first line.
+					This is not at all efficient.
+					
+				Thus, we give spark the power to handle internal optimisation.
+				
+				making spark transformation lazy, we gave it the power to optimize, the DAG.
+				E.g. filter operations if used after some steps can be performed first due to spark internally optimizing it to filter out useless data. And thus optimizing it filter.
+				The result won't be affected, it will do these only for use cases where moving a particular transformation up the order, does not change the result.
+				Moving filters up, to filter out unnecessary data, is called Predicate Pushdown.
+				
+		Why do we store the result in a new RDD each time?
+			Firstly, because RDDs are immutable.
+			But, why did Spark developers do that in the first place?
+				Because if one of them crashes, we don't need to begin execution from the beginning. Instead we can access the previous RDD(from the DAG), and quickly perform the operation.
+				In other words, the DAG will tell us the parent RDD, on which the execution can be performed.
+			If it were mutable, and we put everything in the same RDD, in case of failure we had to perform all the steps again.
+			So, immutability gives us Resilience.
+			Thus, spark is resilient to failure.
+			
+			
+			Few important transformations are:
+				filter()	:	input==n ; output<=n	//If input has n rows, output will have less than or equal to n rows. Similarly,
+				map()		:	input==n ; output==n
+				flatmap()	:	input==n ; output<>=n
+			
+		
+		
+	What are the programming languages used to write Spark code:
+		Java
+		Scala	(Most popular)
+		Python	(gaining popularity)
+		
+		
+	Let us now see a simple program on how it works.
+		
+		hadoop fs -mkdir /spark_dir
+		cd Desktop
+		gedit input1.txt
+		hadoop fs -put /home/cloudera/Desktop/input1.txt /spark_dir
+		spark-shell
+		val rdd1 = sc.textFile("/spark_dir/input1.txt")			//sc is spark concept, which is the entry point to distributed computing, by default all computations will happen on local.
+		val rdd2 = rdd1.flatMap(line => line.split(" "))
+		val rdd3 = rdd2.map(word => (word,1))
+		val rdd4 = rdd3.reduceByKey(_+_) //or reduceByKey((x,y)=>{x+y})	//it only works on 2 rows at a time. It internally brings all the similar keys together. Then it will fetch the first two similar rows, and add the value. again, it will take 2 rows and do the same operation.
+		rdd4.collect
+		
+		//After this the output won't be stored anywhere, we need to give a seaparate command for storing it, it just gives the output on the terminal
+		
+		
+		
+		-----------------------------------------------------Proving that pi = 3.14-----------------------------------------------------------
+		
+		Pi estimation.
+		
+		val rdd1 = sc.parallelize(1 to 1000)
+		val rdd2 = rdd1.filter{_ =>
+				val x = math.random
+				val y = math.random
+				x*x + y*y < 1
+				}
+				
+		val count = rdd2.count()
+		
+		println(s"Pi is roughly ${4.0 * count /1000}")
+		
+		
+		
+		
+		
+		Difference between reduceByKey and reduce.
+			> reduceByKey is a transformation, whereas reduce is an action.
+			> reduceByKey expects a key value pair, however reduce works on individual element
+			> Scenarios where they are used:
+				reduceByKey
+					(hello,1)
+					(how,1)
+					(is,1)
+					(are,1)
+					(hello,1)
+					(is,1)
+				
+				reduce
+					1
+					2
+					3
+					4
+					5
+					6
+					9
+					10
+					
+					//to sum up we have to use reduce.
+					
+			> Outputs:
+				reduceByKey
+					as many as the no. of unique keys
+					the data size is still huge, and we might be interested in having some other operations done in parellel. Thats why spark developers kept it as rdd (distributed), for furthur transformations.
+				reduce
+					1 output
+					no other transformations required.
+			
+		
+		
+		
+		
+		
+		
+	Key points:
+		what is spark?
+		RDD
+		Immutability
+		in memory
+		DAG or execution plan
+		Transformation and actions
+		transformations are lazy
+		predicate pushdown
+		map, filter, flatmap, reduceByKey
+		reduce, count, collect

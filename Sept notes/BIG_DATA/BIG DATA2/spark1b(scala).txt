@@ -1,0 +1,268 @@
+spark-shell
+
+var vs val
+	
+	var a=5
+	a=7 //var is a variable thus it can be changed
+	
+	val b = 5
+	b=7 //error (reassignment to val)
+	
+		in scala val's are preffered more than val
+		immutability is preferred.
+	
+	val a:Int = 5
+	
+	datatypes:
+		boolean, char, double, float. long, byte
+		
+	println("Hello"+variable+list)
+	
+	
+	if(1 > 3)
+	{
+		println("Impossible")
+	}
+	else
+	{
+		//
+	}
+	
+	Switch case:
+		val num = 1
+		num match
+		{
+			case 1 => println("One")
+			case 2 => println("Two")
+			case _ => println("No")
+		}
+		
+	for (x <- 1 to 10)
+	{
+		val squared = x*x
+		println(squared)
+	}
+	
+	not recommended to use for loops in scala
+	
+	//Expression
+	{val x = 10; x + 20; 7}
+		returns 7
+		
+		//last statement will get returned
+	println({val x=10;x+20})
+	
+	//prints 30
+	
+	
+	def squareIt(x: Int): Int = {
+	x*x
+	}
+	
+	println(squareIt(4))
+	// 16
+	
+	
+	def transformIt(x: Int, f: Int => Int)  :  Int = {
+	f(x)
+	}	
+	
+	transformInt(3,x=>x*x*x)
+	//x=>x*x*x is called anonymous function in scala and lambda expression in python
+	
+	Two important collection type in scala
+		Tuple:
+			val captainStuff = ("Picard","Enterprise-D","NCC-1801-D")	
+			
+			println(captainStuff)
+			println(captainStuff._1)
+			
+			val diffdatatypes = ("hello",13,true)
+			diffdatatypes._1
+			
+			you can have elements of different dataypes
+			indexing starts at 1
+			//Tuple of two is a special case where we can treat 1st element as key, and second as value
+		
+			val picardsShip = "Picard" -> "Enterprise-D"
+			("Picard","Enterprise-D")
+			
+			Difference between hashmap and ths tuple is that tuple can contain duplicate values, this cannot.
+		List:
+			val shipList=List("Enterprise","defiant","Voyager")
+			
+			println(shipList(1))
+			
+			println(shipList.head)
+				//will give first element
+			println(shipList.tail)
+				//will give a list of sall the elements except head
+				
+		
+				List can hold data only of same datatype.
+				List index starts from 1
+				
+		shipList.map((a:String) => (a.reverse))
+		List[String] = List(esirpretnE, tnaifed, regayoV)
+
+		
+		val numlist = List(1,2,3,4,5)
+		val sum = numlist.reduce((x:Int, y:Int) => x+y)
+		
+		
+	1) What is Scala?
+		It is a hybrid programming language which supports both object oriented style plus, functional aspects.
+		However as a data engineer we are more interested for the functional aspects.
+		Scala runs on JVM.
+		
+	2) Why Scala?
+		Concise language and gives a functional aspect which is very well suited for data crunching, also provides scripting approach. We need to write very less code for large activities.
+		
+	3) What is functional Programming?
+		Functional programming is a particular style of writing code or software using pure functions and immutable values.
+		However there are a bunch of other properties but these 2 are very critical.
+	
+	4) What is a function?
+		A relationship between input and output.
+		
+	5)  What is a pure function?
+		It has 3 important characteristics:
+			a> should be dependent only on the input parameter. ANy other external variables chould not impact the result.
+				e.g.: squareRoot is pure, converting dollar to rupees isn't
+				
+				def func(i: Int) = {
+					2*i
+				}		//pure
+				
+				
+				var a=3
+				def func(i: Int) = {
+					2*i+a
+				}	//not pure
+				
+				
+				def func(i: Int) = {
+					var a=3
+					2*i+a
+				}
+				
+				
+				
+			b> should not modify the input parameter value.
+				e.g.:
+					def func(i: Int) = {
+					i=i+1
+					2*i
+				}	//not pure
+				
+				
+				def func(i: Int) = {
+					i+1
+					2*i
+				}	//pure
+		
+		
+		
+			c> there should not be any side effects. It should do only what it is intended to do.
+				e.g.:
+					def doubler(i:Int) = {
+						println("hello, this is a doubler function")
+						2*i
+					}	//not pure
+					
+		6) How to check purity of a function?
+			By *referential transparency*: a very important word in functional programming.
+			If we can replace all the occurance of the function-with a particular parameter, with its result. It is referentially transparent.
+			e.g.:
+				If in a program we have a sqrt(4) function, multiple times, we can directly replace it by its result that is 2.
+				
+		
+		7) What is a first class function?
+			Whatever we can do with values, can be done with functions.
+				a> Values can be stores into variables, similarly, functions can be stored in variables
+					e.g:
+						def doubler(x:Int): Int = {
+     							2*x
+     						}
+     						
+     						var i = doubler(_)
+     						
+     						i(2)
+     						
+     						
+				b> Values can be passed into a function, similarly, functions can be passed into functions
+					e.g.:
+						def cubeIt(x: Int): Int = {
+							x*x*x
+						}
+						
+						def doubleIt(x: Int, cubeIt): Int = {
+							cubeIt(x)
+						}
+						
+						
+				c> Values can be returned by a function, similarly, a function can be returned by another function.
+					
+			
+			
+		8) What are higher order functions?
+			If either of two things are done, a function can be called as a higher order function:
+				a> If a function is passed as parameter to another function.
+				b> If a function is the return type of another function.
+			
+			
+		9) What is an Annymous function?
+			A function which has no name is called an anonymous function.
+				Since we don't need to call it again and again, there is not need to define it. It can be written  in-line.
+				It is like lambda expression in Python		
+			
+		10) Concept of Immutability.
+			Immutability means we cannot change the value.
+				"val" provides immutaility in scala.
+				For RDD, immutability is very important for making it resilient to failures.	
+			
+			
+		13) Loop vs recursion vd tail recursion.
+			//loop
+			def fact(x: Int): Int = {
+     				var res =1
+     				for(i<-1 to x)
+     				res = res * i
+     				res
+     			}
+     			
+     				
+			//recursion
+			def factr(x: Int): Int = {
+     				if(x==0)
+     				1
+     				else if(x==1)
+     				1
+     				else
+     				x*factr(x-1)
+     			}
+     				
+     			
+     			//tail recursion
+     			def factorial(x: Int, result: Int): Int = {
+     				if(x==1) result
+     				else factorial(x-1,x*result)
+    			}
+
+
+
+     			
+     		14) statements vs expressions:
+     			var a = 5
+     			var result = if(a==5) 6 else 7
+     			println(result)
+     			
+     			6
+     			
+     			var a = println("hello")
+     			println(a)
+     			// a: ()
+     			
+     			Every statements returns a value, hence every statement is considered as an expression.
+     			
+     		

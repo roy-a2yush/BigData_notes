@@ -1,0 +1,39 @@
+WHAT IS BIG DATA?
+
+Everyone uses youtube, right?
+Your youtube feed is full of videos, recommendations and whatnot.
+But, have you seen the youtube feed of other people? Did you notice, that both your feeds are contrastingly different? Have you ever wondered why?
+Well of course you must have, and probably you know the answer. Google uses a machine-learning algorithm, classification etc., to give you a feed, custom made for you.
+And how did they know your choice, thereby creating a custom made feed? Well, with your help, your clicks, views, repeated views, likes etc.
+Well, I was speaking about the two of you here. Could you tell how many people have a youtube account as of now?
+Trillions right?
+And you also agree that these trillion accounts have their custom-designed feed. Which means data or rather logs, from trillions of devices are being computed each second. Terabytes of rather petabytes of data are being generated each second. They are being refined, screened and algorithms are being performed only on the useful data. These are done parallelly, for millions of users.
+
+Let me give you another scenario.
+How often have you searched some product on google, or say Flipkart, and later, actually found google advertising those same products to you?
+Well, if it does, there's nothing to worry, you are not the only one. The same Machine Learning Algorithm is being used there too.
+But on the logs from trillions of computers. Each click, hovering, screentime, and other pieces of information are being generated from millions of machines, and they are being refined and algorithms are being made to run on them parallelly, that too in very less time. These operations of handling such huge amounts of data are done using Big Data Technology. By reading this you may now have an idea about why Big data analysis is so important, and why Big data Analysts are so much in demand.
+
+Computation also needs to happen on other batch or fixed data, every day, that too millions of it, making the size large. For instance finding out the no. of occurrences of each word in The Mahabharata(Useless, I know but just get a feel). The data is so huge, that it will:
+                    1) First of all, take a lot of time to process.
+                    2) Won't be able to be stored properly in one machine(Possibly).
+
+This is called BIG DATA.
+
+
+Well, I said Big Data, but "big" is an abstract adjective. The immediate question that comes is how big?
+    For some systems having 4gb ram and 128GB SSD, 256 GB of data is a big data, but for other machine having 512gb Memory, it isn't.
+
+So, how exactly can we define Big Data?
+    Well, big data analysts use IBM's definition to explain Big Data.
+        According to IBM, any data, which follows the 3 V's can be termed as big data.
+        Now, what are the 3 V's?
+            i) Volume
+            ii) Variety
+            iii) Velocity
+    These definitions you can very well find anywhere, so I won't go into much detailing.
+
+
+
+    																											-A blog by Sumit Mittal
+    																												Big-Data, Hadoop & Spark Trainer

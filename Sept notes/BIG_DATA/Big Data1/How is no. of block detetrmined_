@@ -1,0 +1,11 @@
+How is no. of block detetrmined?
+	In Hadoop 1.0, the no. of blocks were determined by diving the data into blocks of 64mb each by default. But, in Hadooop 2.0, this no. changed to 128mb each by default. And by "by default", i mean that the no.  can be tweaked. Therefore, the block size is what determines the no. of blocks. For instance, if we have a file of 500mb,  by default, we would have 4 blocks of size, 128mb, 128mb, ,128mb, and 116mb. Now, according to use cases, these nos. can be changed. This is the work of hadoop admin and one needs to be very careful while operating on this.
+
+	Let us take the same example as that of the essay. Lets day there are 50 lines in it. So,  if we were to divide the page into 50 parts, even if we had 50 people, it wouldn't be efficient and end up taking more time than the traditional monolithic system. So,  its a point to remember that big data architecture is to handle big data only, a nd not small amounts of data. Thus decreasing teh block size less than a particular limit is not adviced.
+
+What if a particular system fails or is very slow.
+	The nodes, in the cluster are made up of cheap hardware, implicating it might fail.
+	That is why, copies of each blocks are made and sent ot different machines.
+	Consider, the same example, 4 people, get 4 division of an essay, and lets say person no. 2 is incompetent, or leaves for some reason. This will mean that the whole computing has failed, as the copy with that particular person hasn't been computed, or if he is slow, the system needs to wait for him to complete, and the system has crashed is is really slow, bringing back the problem why big data was introduced in the first place.
+
+	Thats why, we have term called replication factor. By default, it is set to 3. It means for each block, there are three copies generated and are given to 3 different people. Thus, now if qa person fails to count the words,  or is slow, the system will internally trigger the other person(nearest person), who has the copy to start the process of word count and report.

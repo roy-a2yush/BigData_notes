@@ -1,0 +1,32 @@
+Create new project
+Create new scala object by right clicking on src
+
+Stages are marked by shuffle boundaries
+
+
+
+import org.apache.spark._
+import org.apache.spark.SparkContext._
+import org.apache.log4j._
+
+object WordCount {
+  def main(args: Array[String])
+  {
+    //Set the log level to only print errors
+    Logger.getLogger("org").setLevel(Level.ERROR)
+    
+    //Create a Sparkcontext using every core of the local machine
+    val sc = new SparkContext("local[*]","WordCount")
+    
+    val input = sc.textFile("/home/roya2yush/Documents/BIG_DATA/Class/spark-data/book-data.txt")
+    val words = input.flatMap(a=>a.split("\\W+"))
+    val lowerCaseWords = words.map(myOwnFunction)
+    val wordCount=lowerCaseWords.countByValue()
+    wordCount.foreach(println)
+    scala.io.StdIn.readLine()
+  }
+}
+
+def myOwnFunction(x: String): String = {
+	x.toLowerCase()
+}

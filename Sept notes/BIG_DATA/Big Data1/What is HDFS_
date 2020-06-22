@@ -1,0 +1,30 @@
+What is HDFS?
+	
+	HDFS stands for Hadoop distributed File Systems.
+	Its the way of storing files in a distributed system, or a cluster.
+
+	What do we do, when we need to increase the power/performance of a machine?
+		Increase the specs and resources, increase the RAM, Hard disk, processor, right? But even after doing so repeatedly, it reaches a saturation point, where increasing the resources, does no longer help in increasing the performance. This is because of hardware resistance. The is approach of storing all the data, and using once machine for its computation is called a Monolythic system or architecture.
+		The problem with this?
+			Well as said earlier, scalability. This system isn't scalable, which means, it reaches a saturation point in terms of increasing the performance, if we keep  on increasing the resources to do so.
+
+		This was the problem which was forseen by google, and they gave up a white paper, named GFS- Google File Systems, which talked about distributed storage. The other white paper was called Mapreduce, which spoke about distributed computing.
+		These together helped in acheiving scalability by means of distributed computing.
+
+	Yahoo, took this paper and came up with the technology for Distributed storage, and named it, ,HDFS- Hadoop Distributed File Systems. This basically helped to put data on the cluster or on multiple machines or nodes for computing and other activities. This approach is called as Distributed
+
+What is Mapreduce?
+	The white paper for Distributed computing called as Mapreduce was again incorporated by yahoo, and a  new technology was made, named as Mapreduce itself. This helped acheving distributed computing. Mapreduce can basically be called as two different segments- Map and Reduce.
+
+	Lets take a real life example for better understanding. Say, we have a page with an essay written on it, and we need to calculate the no. or words in that particular essay.
+	So, if we give that job to one person, he is going to be slow as he needs to count all words in that page.
+	Imagine a faster way,  what if we had 2 people, or 3. We would divide the page, and give each division to the 3 person. Now, since each person has to count words on 1/3rd of the page, it would be way faster. And finally they would give their own respictive counts to one person to add it up.
+
+	This is exactly what HDFS and MapReduce does.
+	Think the persons as nodes, and the page as data. When we upload a data into the HDFS, it automatically divides the data into blocks, or input splits and gives every machine their share.
+	Thing the counting of words as a program. Each person is counting simultaneously. Similarly, each map class or program runs simultaneously, thereby giving parellelism to the computing and increasing its speed. The no. of map programs running is equal to the no. of blocks
+	Think the reduce program as the final aggregation or summing up of thhe counts provided by each person. Thus, reduce function finally aggregated and gives final touch to the problem solving. By default, the no. of reduce programs running is 1.
+
+Together HDFS and MapReduce formed the two core compenents of Hadoop 1.0
+
+

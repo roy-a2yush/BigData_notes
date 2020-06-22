@@ -1,0 +1,45 @@
+There are two types of transformations in Spark:
+	Wide transformation: shuffle required
+		E.g.: reduceByKey(), groupByKey()
+	Narrow transformation: where shuffle in not required, works on the principle of data locality
+		E.g.: map(), filter()
+
+rd.getNumPartitions()
+	Will give you the no. of patitions which are available
+
+IQ> There are two ways to change the no. of partitions:
+	1) repartition
+		-If we want to increase the no. of partition only choice available to us is repartition.
+		-If we want to decrease the no. of partition both can be used.
+		-Not preferred.
+		-Complete shuffling is there, therefore not optimized for reducng the no. of partition.
+
+	2) coalesce
+		-If we want to decrease the no. of partition both can be used.
+		-Preferrably coalesce is used.
+		-Advantage: It will try to avoid shuffling whenever feasible.
+
+	Scenario to explain:
+
+		1GB file: 4Machines
+
+		Machine1		Machine2		Machine3		Machine4
+		B1    B2		B3    B4		B5    B6		B7    B8
+
+		.coalesce(4)
+			No shuffling is required, as the two blocks in the same machine is combined.
+
+			But in .coalesce(2)
+				wont be able to avoid shuffling: as data from other machines also needs to to integrated.
+
+		Coalesce is is ideally used after filter transformation.
+			Lots of data are filtered out, thus, no. of partitions should be reduced for organising better.
+
+
+What is a bradcast Join?
+	The concept of map-side join in hive is called as a broadcast join in Spark.
+
+
+	Create a list
+	create rdd
+	count of each logging level

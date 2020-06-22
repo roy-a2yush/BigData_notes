@@ -1,0 +1,47 @@
+WHY LEARN BIG-DATA AND HADOOP?
+
+The simple answer to the above question would be, "Data is the heart of every technology, already in use and those in future production". Whatever new tech comes in the market, relies on data. And it is safe to say that Big Data is everywhere. Also, in today's world, there is a boom of internet and digitalisation. Correspondingly, the need for Big data developers will keep on increasing to handle and compute huge amounts of data.
+To put up in points:
+    1> High demand for Big data Professionals.
+        Big data being such an important aspect in the market today, has great demands for Big data analysts.
+    2> Among the highest paid jobs in the market.
+        Seeing its importance, the salary offerings are really high
+    3> Growing market for Big data.
+        New companies are being opened, and thus the competition between companies is really high, and each company wants a fluid-like experience to all its customers, and to lure new customers,  therefore they are open to new tech, the newest and most important of all being Big data.
+    4> Global digitalisation.
+        The whole world is getting digitalised today, increasing the amount of data being generated and processed each day, therefore the need to handle it is also increasing day by day.
+    5> Less competition.
+        Big Data is a fairly new technology and trend in the market today, has really less competition than its counterparts like Machine Learning, Artificial Intelligence, Cloud computing etc., as there are limited no, of big data professionals in the market today.
+    6> Huge job opportunities
+        We have been hearing that the IT sector has reached its saturation point and the market may go down any time soon. But, it is not the case with Big Data. Data Analysts, especially that skilled in Hadoop, Sparks etc, have a great market now. And huge job openings, one of the reasons being the scarcity of Big Data analysts.
+
+Why Hadoop then? Or rather what is Hadoop?
+    Hadoop is the interface or framework that is used to handle Big-Data. Therefore it must be learnt, as simple as that. It has features like scalability and is open-source.
+    Also, Hadoop and spark developers end up getting the highest paid job in the industry today. Is it not reason enough to start learning Big Data and Hadoop?
+    Also, speaking about ways, knowledge is everywhere, and you can learn via Youtube or online courses or books. But,  always the best way to learn Hadoop is by an instructor based education.
+
+
+HISTORY OF HADOOP.
+    In the early 2000s, Google gave out a white paper giving out the idea of distributed storage and distributed computing.
+    Yahoo took the paper and came up with a framework called Hadoop 1.0
+        It mainly had 2 components-
+            HDFS- Hadoop Distributed File Systems
+            Mapreduce- Accessing and computing data from HDFS.
+
+        Later in 2009, they thought that Mapreduce was getting a lot of loads and they, split the MapReduce into 2 components. Enter YARN- Yet Another Resource Negotiator.
+        So, now Hadoop 2.0 was born, with 3 components-
+            1) HDFS
+            2) MapReduce
+            3) YARN
+        Other interfaces like, Pig, Sqoop, Hive, etc., work around HADOOP and assists it for better control over data.
+
+
+WHAT ARE THE PRE-REQUISITES OF LEARNING HADOOP and SPARK?
+    So, coming to the pre-requisites:-
+        > One must know core java, not advance java, but basic core java, Multithreading etc.
+        > Since developers use Virtual Machine whenever they are working with big data, and usually use the terminal to interact with file systems, they must know basic LINUX/UNIX commands.
+        > Lastly, basic SQL is required, queries to be exact to retrieve structured data or data stored in tabular form.
+
+    That's all, and the best part is, one can do these in maximum a week, not to forget, you can practice as you learn HADOOP and SPARK.
+
+

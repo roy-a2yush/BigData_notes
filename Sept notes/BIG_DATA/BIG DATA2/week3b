@@ -1,0 +1,71 @@
+Difference between group by sort by:
+	group by works with 1 reducer;
+	order by can work with multiple reducers;
+	distribute by will not cause any overlap;
+	
+Both distribute by and sort by together forms cluster by
+
+Rankings: rank gives ranking
+	ties are assigned with same rank, with the next ranking skipped.
+			select col1,col2,rank() over(order ny col2 desc) as ranking from table1;
+	
+Differentiate between rank, dense rank and rowno.
+
+dense_rank(): ties are assigned the same rank, but next rank is not skipped
+			select col1,col2,dense_rank() over(order by col2 desc) as ranking from table1;
+
+
+row_number(): assigns unique no. to each row
+		If someone asks top 2, we can easly query now.
+			select col1,col2,row_number() over(order by col2 desc) as ranking from table1;
+
+partition by: using this it will give ranks for all persons
+			select col1,col2,row_number() over(partition by col1 order by col2 desc) as ranking from table1;
+			
+			
+HIVE USER DEFINED FUNCTIONS:
+	write in eclipse save as jar file
+	in hive:
+		add jar /home/cloudera/Desktop/my_udf.jar;
+	
+	creating a temporary function:
+		create temporary function f1 as 'udf_example.DataStandardization';
+		
+	you can create a permanent function as well:
+		
+	Note: override the evaluate method only.
+		extend UDF.
+		
+		
+SQOOP:
+		to bring the data from database to hadoop environment to database.(the opp can also be done, it s called sqoop export)
+		Special mapreduce where only mappers work.
+		Not reducers.
+			4 mappers by default, however the no. can be changed.
+		Mostly practical.
+		
+		If you want to have a quick look of the data from the hadoop environment. Get a feel from the hadoop environment as probably you don't have access to mysql of that particular system,  but have the user id and password
+		3306-> port no. on which mysql works.
+			
+			sqoop-list-databases \
+			--connect "jdbc:mysql://quickstart.cloudera:3306" \
+			--username root \
+			--password cloudera
+			
+			
+			sqoop-list-tables \
+			--connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+			--username root \
+			--password cloudera
+			
+			
+		increasing the no. of mappers can impact the database.
+		So, be cautious.
+		It should not be too less, no parellelsm
+		
+		Target directory won't work for importing all tables:
+			You need to use warehouse directory so that it will create a separate folder for each table, whose name will be same as the table name.
+
+
+
+

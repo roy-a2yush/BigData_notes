@@ -1,0 +1,311 @@
+Scala
+=====
+	Both OOP and functional programming.
+	-> Spark works best with scala as spark is written in scala
+	-> Scala gives best performance because directly scala code can interact with JVM however in case of python a python process is created which interacts with python.
+	-> Java has bulky code.
+
+	2 modes of writing scala lode:
+		REPL - interactive
+		IDE - in eclipse
+
+	Functional programming
+	======================
+		pure functions and immutable values
+		very good fit in library design and data crunching activities
+
+	Pure function
+	=============
+		1. Input solely determines output
+		2. Function does not change its input value
+		3. no side effects
+
+	val => Constant
+	var => variable
+
+	val a: Int = 5
+	var b = 5
+	println(a)
+
+	Data types:
+		Int
+		String
+		Float
+		Double
+		Long
+		Byte
+		Boolean
+
+	s interpolation
+		$name: String = 'Aayush'
+		println(s"Hello $name , How are you?")
+	f interpolation
+		val PI: Float = 3.1417
+		println(f"Value of pi is $PI%.3f")
+	raw interpolation
+		println(raw"Hello\nHow are you")
+
+	String comparison
+		x == y
+
+	if else
+		same as java
+
+	switch case:
+		num match {
+		case 1: //
+		case 2: //
+		case _: //
+		}
+
+	for:
+		for(x <- 1 to 10) {
+		//
+		}
+
+	while / do while:
+		same as java
+
+	block:
+	{
+		//
+		//
+		//
+	} //last statement is return statement
+
+
+
+	DEFINING A FUNCTIONS:
+	=====================
+		def squareIt(x: Int): Int = {
+			x*x
+		}
+		//OR
+		def squareIt(x: Int) = x*x
+
+		def transformInt(x: Int, f:Int => Int) = {
+			f(x)
+		}
+
+		println(transformInt(2,squareIt))
+
+		transformInt(2,x=>x*x*x) //anonymous function
+
+	SCALA COLLECTIONS
+	=================
+		Array
+			val a = Array(1,2,3,4,5)
+			println(a.mkString(","))
+			a.head() //first
+			a.tail() //except first
+			a.reverse()
+			a.sum()
+
+		List
+			singly linked list
+
+		Tuple
+			1 based index
+			val = (x,"Hello",true)
+			x._1
+			tuple of 2 elements: key value pair
+			val x = (1,"Hello")
+			val x = 1 -> "hello"
+
+		Range
+			val x = 1 to 10
+			val x = 1 until 10
+
+		Set
+			unique values
+			order not maintained
+
+		Map
+			key value pair
+			val x = (1 -> "Sumit", 2 -> "Sushant")
+
+
+
+
+	Scala Type system
+	=================
+		AnyVal
+			Byte
+			Short
+			Int
+			Long
+			Float
+			Double
+
+			Unit ()
+			Boolean
+			Char
+
+		AnyRef
+			Array
+			Tuple
+			Set
+
+			String
+
+		Special types:
+			Null
+			Nothing
+
+
+	Creating a class in Scala
+		class Person(name: String,age: Int) {
+			val x = 20;
+			def ageDoubler = age*2
+			def salaryDoubler(salary: Int) = salary*2
+		}
+
+		val p = new Person("Aayush",21)
+
+		p.name //incorrect, write val before name in class definition, only then it will be correct
+		p.x
+		p.ageDoubler
+		p.salaryDoubler(10000)
+
+
+	for static functionality in Scala
+	//companion design paradigm
+
+		object person {
+		//class level functionality same like static in java
+			val N_eyes = 2
+			def canFly: Boolean = false
+		}
+
+		class person(name: String, age: int) {
+		//instance level functionality
+			def ageDoubler = age*2
+		}
+
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+:															ScalaLearning10
+INHERITANCE:
+============
+	3 access specifiers:
+		private
+		protected 
+		public (default)
+	Multiple inheritance is not possible in scala
+
+Abstract Class:
+===============
+	contains unimplemented methods and unassigned variables, however some methods can be implemented also
+	The whole purpose of the abstract class is to implement it later, by inheriting it in child class
+	Can't create an instance of the abstract class
+
+trait
+=====
+	Just like abstract class
+	trait is like interface in Java except you can have implemented as well as implemented
+	It is used to achieve multiple inheritance
+	generally traits mark some behavior
+	traits cannot have a constructor parameter
+		
+---------------------------------------------------------------------------------------------------------------------------------------------
+:															ScalaLearning11
+Case Class
+==========
+	Special classes where you need to write less code
+		1. All class parameters are promoted to fields
+		2. sensible toString
+		3. equals and hashCode method aleady implemented
+		4. Have companion objects created already
+		5. copy method
+		6. serializable
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+:															ScalaLearning12
+App in scala is a helper class which already has a main method
+Default args, named args, variable args
+	def add(num: Int = 8, incrementBy: Int = 1) = {
+		num + incrementBy
+	}
+
+	println(add(5))
+	println(add(5,5))
+	println(add(incrementBy = 3)) 				//named argument
+
+	//variable argument
+	def printFn(str: String*) = {
+		for(i <- str) {
+			println(i)
+		}
+	}
+
+	printFn("Hello","How")
+	printFn("Hello")
+	printFn("Hello","How","Are")
+
+
+
+difference bewteen Nil, None, Nothing, Option, Unit, Null
+	Null: is a trait in scala
+		There exists only 1 instance of Null, i.e, null
+		Restrict use of null, as it can lead to null pointer exceptions
+	Nil: empty list
+		val c = Nil
+	Nothing: a trait, no instances
+			 nothing means there was an error and nothing was returned
+			 def fun = {
+			 	throw new Exception
+			 }
+			 //type of fun = Nothing
+	Option: Sometimes we have something to return a useful value sometimes we dont, retuning Null is not preferred
+			returns: Some() or None
+	Unit: like void in Java
+		  Unit()
+		  it means there are side affects
+
+	How to deal with nulls?
+	
+---------------------------------------------------------------------------------------------------------------------------------------------
+:														ScalaLearning13
+yield
+=====
+	gives vector: kind of a mix of array and an list
+				  array gives index
+				  list gives immutbility
+				  so vector gives both index as well as immutability
+
+				  with yield we cna get a vector from the for loop without incurring any side effects
+
+if guard
+========
+	
+pattern guard
+=============
+
+	case statements can be combined with if expressions to provide extra logic when pattern matching.
+	using if inside case is called pattern guard
+
+for comprehension
+=================
+	scala internally converts
+		for(i <- 1 to 10) println(i*i)
+	to
+		(1 to 10).foreach(i => println(i*i))
+
+	Example 2
+		for(i <- 1 to 10) yield i*i
+		to
+		(1 to 10).map(i => i*i)
+
+	Example 3: nested forloop
+		for(i <- 1 to 10; j <- 'a' to 'c') yield i*2+" "+j
+		will also get comprehented internally by scala
+
+
+Difference between == in java and == in scala
+=============================================
+	java: reference comparison; operator
+	scala: == is same as .equals in java; function(scala does not have operators)
+		in scala eq is used to compare the references
+		a.eq(b)

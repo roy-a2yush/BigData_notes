@@ -1,0 +1,81 @@
+groupByKey:
+	1TB file in hdfs
+	will have 8000 blocks
+	you have a 1000 node cluster
+	each machine will have 8 blocks
+
+	if we use groupByKey()
+		and supposedly we have 3 keys ERROR, WARN, INFO
+
+		1TB file will goto atmost 3 machines.
+		as 3 keys will go to at-max 3 machines.
+
+		therefore 333 GB in ech machine approx.
+
+		> Very less parellelizm, as only 3 machines will do entire work.
+		> Huge amount of data needs to be shuffled, therefore time taking.
+		> high chances of out of memory error.
+
+
+
+WHat is the difference between reduceByKey() and groupByKey(). And which one of them is preffered.
+	reduceByKey() is preferred over groupByKey()
+
+		reduceByKey() is like a combiner at the mapper end which will incorporate local aggregation in every machine. And if the previous example is taken, 3 * 8000 keys are send to the reducer.
+
+		Aggregated result from each machines are sent to the reducer.
+
+		No such thing in groupByKey(): It will send all the data in at max 3 machines.
+
+narrow vs wide transformation:
+	
+repartition vs coalesce:
+
+reduceByKey vs groupByKey:
+
+reduce vs reduceByKey:
+
+what is a stage
+
+why spark is given as lazy? or why transformation is given as lazy?
+	predicate push-down.
+	pipelining: combining same type of commands:
+		eg- if we have two filters which may be combined without affecting the results. spark will do it internally.
+
+Why is RDD is immutable?
+	resilience to failure.
+
+When to use countByValue and reduceByKey
+
+What is the difference between cache and persist?
+	Cache is only in memory, fast
+	Persist comes with various option like, memory, disk, memory+disk, slow
+
+When to use persist and when to use cache?
+	For check-point.
+	Maybe we want to cache a particular rdd because before that we have spent too much of hardwork till that particular rdd.
+		So, now data will be small and all other operations will be based on that rdd so we will do rdd.cache
+
+		If data is still huge, we would do rdd.persist.
+
+	Never cache or persist the initial rdds, only cache or persist if you have done some good amount of work before that particular step.
+
+		rdd1		//action1 starts from here. If .cache wasnt done, action2 would have started from here too.
+
+		rdd2
+
+		rdd3
+
+		rdd4.cache 	//action2 starts here
+
+		rdd5
+
+		rdd6
+
+		action1
+
+		action2
+
+
+command to run jar is
+	park-submit --class UdemyDocker /home/Desktop/Hello.jar

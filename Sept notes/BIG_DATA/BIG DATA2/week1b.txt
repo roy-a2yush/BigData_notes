@@ -1,0 +1,132 @@
+UDF
+UDAF-
+UDTF-
+
+Write a query for intersect and minus using union operation.
+
+Normalisation removes redundant data.
+why normalisation?
+	Since data is redundant, and a data needs to be updated, it needs to be updated at all places. If not inconsistency will be seen.
+
+We don't need normalisation in hive.
+	Because its not a transactional system. We want to minimize the joins at the cost of redundant data.
+
+OPTIMISATION techniques in HIVE
+	> There are two broad categories in which we can think of these optimisation techniques.
+		1> At the table structure level, we can think of some optimization.
+		2> At the query level, we can think of some optimisation.
+
+	> At the table structure level there are two important techniques or 2 ways:
+		i. Partitioning
+		ii. Bucketing.
+
+	> At the query level:
+		i. Join optimisations (As JOIN operation is the most time-taking operation)
+
+
+PARTITIONING & BUCKETING.........
+	
+	....Partitioning....(Folder)
+	
+	Customers table
+		WA
+		CA
+		NJ
+		NY
+		
+	/user/hive/warehouse/trendytech.db/customers/
+	
+		select * from customers where state = 'WA';
+		// we will see which query is used most frequently.
+			And we will partition it accordingly. For example, If most no. of queries are on state we will create a partition on state.
+			This will result in all the same state data in a separate file, and then queries  will just access contents of the particular file.
+			PArtition is to be used intelligetly for the most common queries.
+		
+	....Bucketing.....(File)
+	
+		select * from products where pid = 101;
+		// Can't use partitioning here. 
+		// For bucketing we can customize the no. of buckets as well.
+		// System will use a hash function, we just need to mention on which column we need to bucket and how many buckets are required.
+		 Can't be bucket + partition.
+		 In industry its partition + bucketing
+		 For number of buckets, use hit and trial and see.
+		 
+	No. of mapreduce jobs = no. of JOIN columns.
+	
+	
+	If we have a small table(<25MB), and a large table and we need to do an inner join. We can have all map-ended join.
+	How?
+		By keeping the small table everywhere the larger table is present. Then we don't need to have a reduce job, and all join operations are map side jobs.
+		Therefore inner joins can be treated as a map side join provided one of the tables is small (<25MB).
+		
+		In case of Map-side joins,
+			Left outer join will work if left is large and right is small and not the other way round.
+			Similarly, right outer join  will work, if left is small and right is large and not the other way round.
+		
+		Full outer join won't work  in case of map side join
+		
+		
+		STATIC PARTITION, DYNAMIC PARTITION-
+			DYnamic being more important, as we don't need to have an idea of the data, all inputs will work.
+			
+			
+	ASSIGNMENT:
+		Create a simple hive table.
+		Create an optimised table.
+		Load data from simple to optimised.
+		Truncate the simple table.
+		
+		
+		3 ways of JOIN optimisations:
+			> Map side Join
+			> Bucket map Join- both the tables should be bucketed on the join columns.
+			> SMB(Sort Merge Bucket) Join- in both the tables, the data is sorted based on the Join column.
+			
+			
+____________________________________________________________________________________________________________________________________________________________________
+
+
+
+HIVE FILE FORMATS-
+	default- i. text file format.
+		advantages- human readable, widely compatible.
+		disadvantages- not performant, as it takes a lot of storage space, no compression. and even a no. is stored as a text,  and no. will take more space as text. Not that fast during execution.
+		
+	ii. Sequence file format...........
+		> in this the data is stored in a binary form in a compressed manner, and is quite optimised, performant.
+		> limitation- Not widely compatible. tightly cupled with hadoop systems, and not compatible with other systems.
+		
+	iii. Avro file format.............
+		> in sequence file we have embedded the meta data in json format.
+		
+	All these belongs to row based file format.
+	There are two types of file format > row based and column based.
+	
+	ROW based-
+		r1c1 r1c2 r1c3 r1c4 r1c5 r2c1 r2c2 r2c3 r2c4 r2c5 r3c1 r3c2 r3c3 r3c4 r3c5
+		
+		efficient in reading and writing.
+		not perfomant in data warehousing where we want to read subset of columns.(like select c1, c3 from table)
+		
+	COLUMN based-
+		c1 c1 c1 c1 c1
+		c2 c2 c2 c2 c2
+		c3 c3 c3 c3 c3
+		c4 c4 c4 c4 c4
+		c5 c5 c5 c5 c5
+		
+		mostly used.
+		writing will be costly, but writing is needed once reading will be needed N times.
+		
+	iv. ORC file format...........
+		Column based
+		> very optimised, very well integrated with hive. (Best)
+		> not compatible with outside systems.
+		> Best with HIVE
+		
+	v. Parquet file format...........
+		Column based
+		> meta data embedded in data in json format. Now, other systems can use.
+		> very well with spark (Best)
+		> best with SPARK

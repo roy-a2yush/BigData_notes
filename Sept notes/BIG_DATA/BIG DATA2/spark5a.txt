@@ -1,0 +1,10 @@
+Popular cloud for cluster of machines for BigData.
+	google gcp: google data proc
+	microsoft azure: hdinsight
+	amazon aws: emr
+
+.option("header",true)
+	does it scan the entire dataframe of just the first line.
+----------NOT A GOOD PRACTICE TO LET SYSTEM INFER THE SCHEMA-----------
+
+
