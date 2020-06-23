@@ -1,0 +1,48 @@
+APACHE SPARK
+============
+	general purpose
+	plug and play
+	in memory
+	compute engine
+
+	compute engine:
+	---------------
+		Hadoop
+			HDFS
+			MapReduce			//Spark is alternate for MapReduce
+			YARN
+		
+		Spark needs 2 things:
+			Storage: local storage, hdfs, Amazon S3
+			Resource Manager: YARN, Kubernetes, Mesos
+
+	in-memory
+	---------
+		in mapReduce:
+			mr1	mr2	mr3	mr4
+				  HDFS
+
+			Before aand after each mapreduce job, read and write is done respectively
+			for each mr -> 2 Disk I/Os
+
+		in Spark:
+			v1	v2	v3	v4
+				 HDFS
+			Initial seek then everything in memory, then final write
+			only 2 disk I/Os are required
+			10-100 times faster than mapreduce
+
+	general purpose
+	---------------
+		pig for cleaning
+		hive for querying
+		mahout for ML
+		sqoop for migrate data to-from database
+		storm for streaming data
+
+		Learn 1 style to write code:
+			and do all the above mentioned works
+			not only bound to map-reduce
+			map + reduce is there
+			+ there are a lot of other operations
+

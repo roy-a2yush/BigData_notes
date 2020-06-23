@@ -309,3 +309,181 @@ Difference between == in java and == in scala
 	scala: == is same as .equals in java; function(scala does not have operators)
 		in scala eq is used to compare the references
 		a.eq(b)
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+:														ScalLearning14
+strict val V/S lazy val
+=======================
+	lazy val is evaluated when it is called the first time
+	val gets evaluated instantaneously
+
+default scala packages
+======================
+	by default 3 packages are implicitly imported
+		java.lang._
+		scala._
+		scala.Predef._
+
+scala apply
+===========
+	serves tthe purpose of closing the gap between OOP and functional programming paradigm in scala.
+	object Person {
+		def apply(name: String, age: Int) = {
+			s"$name is $age years old"
+		}
+	}
+
+	//2ways to call:
+		Person.apply("Aayush",21)
+		Person("Aayush",21)
+
+	case class Person(name: String, age: Int)
+	//Person("Aayush",21)
+
+Diamond problem and its Solution
+================================
+	A problem which comes with multiple inheritance
+	//in .sc file
+	trait traitA {
+  	  def name = println("This is trait A")
+  	}
+  
+  	trait traitB extends traitA{
+    	override def name = println("This is trait B")
+    	super.name
+  	}
+  
+  	trait traitC extends traitA{
+    	override def name = println("This is trait C")
+    	super.name
+  	} 
+  
+  	object grandChild extends traitB with traitC
+  
+ 	 grandChild.name
+
+ 	 //linearization rule comes into play to decide the call hierarchy
+
+
+Why scala over python
+=====================
+	concise code
+	spark written in scala
+	if new feature comes in spark, it will first be released in scala
+	runs on top of JVM unlike python which creates a process to interact with JVM
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+:															ScalaLearning15
+type Safe
+=========
+	compiler checks for type compatibility at compile time
+
+statically typed V/S dynamically type
+=====================================
+	statically typed when type is known at compile time; give datatype when using
+		Java,scala,C
+	dynamically typed when type is checked at runtime
+		javascript, python
+
+	statically type => less type error
+					   compiler knows the type of data beforehand, hence scope for a lot of optimizations
+
+Exception handling
+==================
+	abnormal conditions during runtime
+		divide by zero error
+	error: abnormal condition because of system issues
+
+	try {
+		val e = 5/0
+	}
+	catch {
+		//if exception comes here
+		case e: Exception => println("Please give a denominator other than 0")
+	}
+	finally {
+		println("I will always execute")
+	}
+
+monad
+=====
+	Not a class not a trait, just a concept
+	Object which wraps another object in scala
+		The output of a calculation at any step is the input to other calculations
+
+	val list1 = List(1,2,3,4)
+	val list2 = List(5,6,7,8)
+
+	list1.flatMap { x =>
+		list2.map(
+			y => x+y
+		)
+	}
+
+streams
+=======
+	lazy lists
+	ways of creating normal lists
+	val list1 = List(1,2,3,4)
+	val list2 = 1 :: 2 :: 3 :: Nill
+	val lazyList = 100 #:: 200 #:: 300 #:: stream.empty
+	println(lazyList)
+	lazyList.take(2).print
+	val l = Stream(1,2,3,4,5)
+
+ofDim
+=====
+	to create a multidimensional array
+	val myArr = Array.ofDim[Int](2,2)
+	//by default all elements assigned 0
+	myArr(0)(0) = 0
+	myArr(0)(1) = 1
+	for(i <- 0 to 1; j <- 0 until 2) {
+		println(myArr(i)(j))
+	}
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+:															ScalaLearning16
+Design patterns
+===============
+	general re-usable solution to a commonly occuring problem<Like template>
+		1. Factory design pattern:
+			hide instance creation logic from the client
+			implement instance creation logic in a factory class without exposing logic to the client
+			Used when we have a super class and multiple Sub classes and based on input we need to return one of the base class
+			Benefits:
+				loose coupling between object creation and the client
+				clear separation of responsibilities
+				easy to change object creation logic without affecting the client program
+
+		2. Singleton design pattern
+			restricts instantiation os a class to one object 
+				eg:
+					object Student {
+						//class level functionality
+					}	
+
+		3. Lazy initialization:
+			initializes a value on its first acccess
+			avoids some expensive computation
+			<refer to lazy val>
+
+Array V/S ArrayBuffer
+=====================
+	- both are mutable
+	- ArrayBuffer is resizable, but array is not
+		import scala.collection.mutable.ArrayBuffer
+		val a = ArrayBuffer(1,2,3,4,5)
+		a+=6
+		a+=7
+		a.append(8)
+		println(a)
+		(1,2,3,4,5,6,7,8)
+
+remove duplicates from Array or List
+====================================
+	val a = Array(1,2,3,4,5,5)
+	a.toSet 				//gives set
+	a.toSet.toArray 		//gives array
+	a.distinct
