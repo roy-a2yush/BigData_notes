@@ -46,3 +46,128 @@ APACHE SPARK
 			map + reduce is there
 			+ there are a lot of other operations
 
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+RDD: Basic unit which holds data in spark; Resilient Distributed Dataset
+	In memory distributed collection
+	
+If RDD3 is lost it will check for its parent graph which is RDD2 and quickly apply the operation to generate RDD3
+	Resilient (fault tolerant)
+	Immutable
+
+Why transformation are lazy?
+	So, that spark internally can optimize the operations according to DAG (predicate push downs)
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+spark-shell
+pyspark
+
+	sc = SparkContext
+	>>spark-shell
+
+	val rdd1 = sc.textFile("/user/cloudera/sparkInput/")
+	val rdd2 = rdd1.flatMap(_.split(" "))
+	val rdd3 = rdd2.map(x=>(x,1))
+	val rdd4 = rdd3.reduceByKey(_+_)
+	rdd4.collect()
+	//localhost: 4040 or 4041
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+Writting in IDE:
+	extend App
+		or
+	declare main method
+
+	When writing in terminal sc was available, but not in IDE
+		val sc = new SparkContext("local[*]","<objectName>")
+	spark 2.4.4 uses scala 2.11
+	to import packages ctrl+shift+O
+
+	In IDE dag is visible only till the program is running.
+	So, admins set up a history server for us to see the DAG
+	
+	To see the DAG we can write:
+		scala.io.StdIn.readLine()
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+val input = sc.textFile("/path")
+val mappedInput = input.map(x=>x.split("\t")(2))
+val results = mappedInput.countByValue
+results.foreach(println)
+
+// map + reduceByKey    =    countByValue
+
+
+.map(x=>(x._1,(x._2,1)))			====>			.mapValues(x=>(x,1))
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+pyspark: wordcount
+
+Step 1: remove val/var
+Step 2: anonymous function is called lambda, so, prefix all anonymous function as lambda
+Step 3: => becomes :
+
+sparkScala code:
+	val rdd2 = rdd1.flatMap(x => x.split(" "))
+    val intermediateRdd = rdd2.map(x => x.toLowerCase())
+    val rdd3 = intermediateRdd.map(x => (x,1))
+    val rdd4 = rdd3.reduceByKey(x,y => x+y)
+
+Step1:
+	rdd2 = rdd1.flatMap(x => x.split(" "))
+    intermediateRdd = rdd2.map(x => x.toLowerCase())
+    rdd3 = intermediateRdd.map(x => (x,1))
+    rdd4 = rdd3.reduceByKey(x,y => x+y)
+
+Step2:
+	rdd2 = rdd1.flatMap(lambda x => x.split(" "))
+    intermediateRdd = rdd2.map(lambda x => x.toLowerCase())
+    rdd3 = intermediateRdd.map(lambda x => (x,1))
+    rdd4 = rdd3.reduceByKey(lambda x,y => x+y)
+
+Step3: 
+	rdd2 = rdd1.flatMap(lambda x : x.split(" "))
+    intermediateRdd = rdd2.map(lambda x : x.toLowerCase())
+    rdd3 = intermediateRdd.map(lambda x : (x,1))
+    rdd4 = rdd3.reduceByKey(lambda x,y : x+y)
+
+Instead of .collect write .collect()
+
+
+Also we can save as text file
+	rdd4.saveAsTextFile("/path")
+	val rdd1 = sc.textFile("File://(indicatedThaTheFileIsInLocalSystemEg:/home/cloudera/Desktop/text.txt)")
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+SCALA SPARK:
+	Map side Join in hive is called as broadcast Join in spark
+	Achieved using broadcast variable
+
+	To open a file in local machine:
+		Source.fromFile("/path")
+	To broadcast
+		val <name> = sc.broadcast(passFunctionWhichHasSet/Array/Etc)
+
+
+
+=============================================================================================================================================
+Transformation:
+	flatMap
+	map
+	filter
+	reduceByKey
+	mapValues
+	flatMapValues
+
+Action
+	collect
+	reduce
+	countByValue
+	take(<a number>)
+
