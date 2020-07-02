@@ -1,0 +1,133 @@
+YARN
+====
+	Yet Another Resource Manager
+
+	HDFS recap
+	----------
+		Name node - Master (holds the metadata)
+		Data node - Slave (holds actual data in form of blocks)
+
+
+	> PROCESSING PERSPECTIVE IN HADOOP1
+	===================================
+		In hadoop 1 the job execution was controlled by 2 processes.
+		master - Job Tracker (Name node)
+		Slave - task tracker (Data nodes)
+
+		Job Tracker
+		-----------
+			Used to do a lot of work
+				Scheduling: which job to schedule first, priorities, resources etc
+				Monitoring: Tracking the progress of job, handling slow task and failed tasks
+
+		Task Tracker
+		------------
+			Tracks task son each data node and informs the job tracker.
+
+
+		DRAWBACKS:
+			Scalability
+				if cluster size goes byong 4k datanodes then the job tracker used to get bottleneck.
+			Resource Utilization:
+				used be be a fixed no. of map and reduce slots in MR1
+				So, at once only that many nos. of map and reduce jobs could run, and the rest had to wait for a map reduce job to get over and an map slot to get empty.
+				When Mapper is running reduce slots are underutilized.
+			Only MR Job supported
+
+	YARN came into picture:
+		Resource Manager - Master
+		Node Manager - Slave
+		Application Master
+
+			Monitoring aspect taken away from Job tracker, now only care about scheduling and It became Resource Manager
+			Job tracker -> (scheduling + monitoring)
+			Resource Manager -> (scheduling)
+
+			Task tracker -> Node Manager
+
+			Application Master -> Monitoring
+
+		Modern Pipeline:
+			The resource Manager creates a container in one of the Node Manager
+			container: memory + cpu
+			Inside the container the Resource Manager creates an application master
+			Application master will take care of monitoring of this job.
+			Application Manager negotiates resources from Resource Manager
+			resources are requested in the form of containers
+			Resource Manager Allocates resources in the form of containers
+			Sends container ID and host name to the Application Master
+
+			Resource Manager also tracks Application Master
+
+		Limitations Addressed:
+			1. scalability:
+				Scheduling- Resource Manager
+				Monitoring- Application Master
+
+			2. Other jobs apart from MR:
+				Giraph, spark, tez
+
+			3. no MR slots:
+				introduction sof containers
+				dynamic memory + cpu allocation
+				no underutilisation
+
+	UBERIZATION
+	===========
+		If the job is small and can be done in the container where App Master is running, it will go ahead, and not negotiate resources
+
+
+SPARK ON YARN
+=============
+	1. How to execute spark programs on spark cluster?
+		i. Interactive mode:
+			spark-shell
+			pyspark
+		ii. Spark job
+			spark-submit
+
+	2. How does spark execute our programs in the cluster?
+		Spark follows a master slave architecture.
+			Driver: Master Process
+			Executors: Slave Processes
+
+		Driver: Respondible for analyzing the work,
+								dividing the work in many tasks,
+								distribute the task,
+								schedules the task,
+								monitors.
+				1 for each application
+
+		Executor: Responsible for executing the job locally.
+				  each driver has its distinct set of executors
+
+
+	3. Where are drivers and Executors working?
+		Executors are always launched on the clustor(worker nodes)
+		Driver can be launched locally on the client machine(client mode) or on one of the cluster machines(cluster mode)
+		CLient mode: for adHoc work
+					 not prreferred
+					 if client shut down driver killed
+		Cluster mode: preferred
+					  production ready
+
+	4. Who controls the cluster and how does spark get the driver and the executor
+		Cluster Manager:
+			YARN, Mesos, Kubernetes, Spark Standalone
+
+
+	SPARK ON YARN ARCHITECTURE
+	==========================
+		1. Client Mode:
+			> spark-shell
+			> spark session is created. Spark session is like a data structure where driver maintains all the information including executor location and status. This is the entry point for any spark application
+			> as soon as spark session is created the request goes to Resource Manager
+			> Resource manager creates a container on one of the Node managers and starts App master there
+			> App master negotiates resources in the form of containers with the resource Manager
+			> App master creates executors in the containers allocated by resource Manager
+			> Executors can directly communicate with the driver
+
+		2. Cluster mode:
+			> The only difference here is that the spark driver is running on the application master
+
+		

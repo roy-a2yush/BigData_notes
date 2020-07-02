@@ -154,7 +154,24 @@ SCALA SPARK:
 	To broadcast
 		val <name> = sc.broadcast(passFunctionWhichHasSet/Array/Etc)
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+SPARK ACCUMULATOR
+=================
+	Shared variable accessiible by every machine(executor)
+	Executor cannor read the accumulator data, it can only update it
+	Same as counters in MR
+
+	CODE:
+		val input = sc.textFile("/path")
+		val myAccum = sc.longAccumulator("Blank lines accuumulator")
+		input.foreach(x=> if(x == "") myAccum.add(1))
+		myAccum.value
+
+2 Kinds of shhared variable
+---------------------------
+	1. Braodcast variable: separate copy for each machine (same as mapSide join in Hive)
+	2. Accumulator: single copy on the driver machine (same as counters in MR)
 
 =============================================================================================================================================
 Transformation:
