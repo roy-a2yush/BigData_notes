@@ -154,7 +154,7 @@ SCALA SPARK:
 	To broadcast
 		val <name> = sc.broadcast(passFunctionWhichHasSet/Array/Etc)
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 SPARK ACCUMULATOR
 =================
@@ -173,7 +173,152 @@ SPARK ACCUMULATOR
 	1. Braodcast variable: separate copy for each machine (same as mapSide join in Hive)
 	2. Accumulator: single copy on the driver machine (same as counters in MR)
 
-=============================================================================================================================================
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+No. of Blocks and creating RDD from local variable
+==================================================
+
+	.parallelize(myList)					==>						Converts local variable to RDD
+
+	No. of blocks created in this is set in:
+		sc.defaultParallelism
+			can be changed
+
+	to check the No. of partitions:
+		<RDDname>.getNumPartitions
+
+	property for minimum no. of partitions:
+		<RDDname>.defaultMinPartitions
+			> This property comes into play when we load from file systems
+			> Even if file size is smaller than block size for that machine(32mb in local and 128mb in HDFS), It will create RDD partitions equal to <RDDname>.defaultMinPartitions no.
+			> If size is more than default block size no problem
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Narrow Transformations v/s Wide Transformations
+===============================================
+	Narrow
+	------
+		No shuffling
+		No Stage changes
+			map
+			flatMap
+			filter
+			repartition
+
+	Wide
+	----
+		Shuffling
+		Stage changes
+			reduceByKey
+			groupByKey
+
+	Stages: these are marked by shuffle boundaries
+		3 wide transformation gives 4 stages
+		Output of stage 1 is sent to disks; Stage 2 reads it back from the disk
+			TIP: Use wide transormation later in the code
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+reduce V/S reduceByKey
+======================
+	reduceByKey:
+		Transformation
+		Gives RDD
+		Works only on pair RDDs
+
+	reduce:
+		Action
+		Gives local variable
+
+	Why reduceByKey is kept as a transformation and reduce as an action
+		-> Reduce gives you a single output which is very small
+		-> ReduceByKey might still give huge data and we might need to work more on the data
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+groupByKey V/S reduceByKey
+==========================
+	Both are wide transformations
+
+	reduceByKey:
+		local aggregations first(like combiner)
+		less shuffling due to local aggregations
+
+	groupByKey:
+		no local aggregation
+		all key value pairs are shuffled therefore more shuffling
+		huge possibility of out of memory error:
+			data shuffled and sits on <no. of distinct keys> no. of machines
+
+	Never use groupByKey
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Note for localhost:4040 Spark UI visualization
+	No. of jobs = No. of actions
+
+	New stage corresponding to every wide transformation
+
+	a task corresponds to each partition
+
+	blockSize on local machine = 32mb
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+tuple of 2 V/S map of 2
+=======================
+	tuple of 2:
+		rdd having tuple of 2 are called pair rdds
+		Many transformations like reduceByKey, mapValues etc work only on pair rdds
+
+	map of 2:
+		Keys cannot be repeated, needs to be distinct
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
+Calling multiple actions
+========================
+	When we call the first action:
+		The DAG created with all transformation is executed.
+	When we call the second action:
+		All the transformation from the very beginning are executed.
+
+	However spark does some internal optimization:
+		Like, skips stages, as change in stage means disk I/O is done, therefore it reads the output from the previous stage from the Disk and continues with the DAG.
+
+	Therefore when we call any action:
+		All transformation from the very beginning are executed that is why we should use cache and persist
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+repartition V/S coalesce
+========================
+	
+	modify the no. of partitions
+
+	repartition:
+		val newRDD = oldRDD.repartition(newNum)
+		increase as well as decrease
+		During reuduce:
+			intension to give final partitions of almost equal size => full shuffling
+
+	coalesce:
+		val newRDD = oldRDD.coalesce(newNumLessThanPreviousPartitionNum)
+		only decrease
+		if you try increasing no error, but it wont increase
+		preferred when decreasing, as it minimizes shuffling
+			local combination of existing partitions if possible => less shuffling 
+
+
+
+
+====================================================================================================================================================================
 Transformation:
 	flatMap
 	map
@@ -181,10 +326,16 @@ Transformation:
 	reduceByKey
 	mapValues
 	flatMapValues
+	repartition
 
 Action
 	collect
 	reduce
 	countByValue
 	take(<a number>)
+	saveAsTextFile("/path")
+	count
 
+
+sortByKey:
+	hybrid, considered as a transformation but it is shown in Spark UI as action since part of it has to be run
