@@ -297,6 +297,40 @@ Calling multiple actions
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+cache V/S persist:
+	after doing a bunch of operations we can store the rdd so that future transformations start form here and not from the very beginning.
+
+	cache:
+		caching in the memory
+		 If no memory is available, it wont give error, just skip.
+	persist:
+		various storage levels.
+			persist() -> in memory(non serialized format(object format))
+			persist(StorageLevel.DISK_ONLY) -> only disk(serialized format(byte format))
+			persist(StorageLevel.MEMORY_ONLY) -> only memory(non serialized format(object format)). If no memory is available, it wont give error, just skip.
+			persist(StorageLevel.MEMORY_AND_DISK) -> data is cached in memory. If enough memory is not there, evicted blocks are serialized to disks(recommended as re-avaluation is expensive)
+			persist(StorageLevel.OFF_HEAP) -> outside the JVM(raw memory outside the executor). JVM uses garbage collection which is a time taking process.(unsafe operations but performant)(serialized)
+
+	BLOCK EVICTION
+	==============
+		> Consider the situation in which some of the block partitions are so large(skew) that they will quickly fill up the storage memory used for caching.
+		> When the storage memory becomes full, an eviction policy will be used to make up space for new blocks
+		> LRU(Least Recently Used)
+
+NOTE:
+-----
+	Serialization: increases processing cost but reduces memory foot print
+	Non Serialization: processing can be a bit fast but uses more memory footprint
+	MEMORY_ONLY_SER: same as MEMORY_ONLY, but serialized
+	MEMORY_AND_DISK_SER: same as MEMORY_AND_DISK, but serialized
+	MEMORY_ONLY_2: indicated 2 replicas, each stored on 2 different worker nodes.
+						Replication is useful for faster recovery in case of failure.
+
+<RDD_name>.toDebugString: to check lineage graph read from bottom to top.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 repartition V/S coalesce
 ========================
 	
@@ -316,6 +350,7 @@ repartition V/S coalesce
 			local combination of existing partitions if possible => less shuffling 
 
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 ====================================================================================================================================================================
