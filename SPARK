@@ -352,6 +352,30 @@ repartition V/S coalesce
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+DAG V/S Lineage
+===============
+	Lineage:
+		<RDD_name>.toDebugString
+		even after transformation
+		dependency graph, shows dependencies of various rdds
+
+	DAG:
+		only visible after an action is called.
+		Directed acyclic graph
+		jobs stages tasks
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Making a jar file
+=================
+	export as jar:
+		runnable jar:
+			all dependencies, fat jar
+		jar:
+			normal without dependencies
+
+		spark-submit --class <classname> /path of jar
+
 
 ====================================================================================================================================================================
 Transformation:
