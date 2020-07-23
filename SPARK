@@ -154,7 +154,7 @@ SCALA SPARK:
 	To broadcast
 		val <name> = sc.broadcast(passFunctionWhichHasSet/Array/Etc)
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------
 
 SPARK ACCUMULATOR
 =================
@@ -194,7 +194,7 @@ No. of Blocks and creating RDD from local variable
 			> If size is more than default block size no problem
 
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------
 
 Narrow Transformations v/s Wide Transformations
 ===============================================
@@ -219,7 +219,7 @@ Narrow Transformations v/s Wide Transformations
 		Output of stage 1 is sent to disks; Stage 2 reads it back from the disk
 			TIP: Use wide transormation later in the code
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------
 
 reduce V/S reduceByKey
 ======================
@@ -256,7 +256,7 @@ groupByKey V/S reduceByKey
 	Never use groupByKey
 
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------
 
 Note for localhost:4040 Spark UI visualization
 	No. of jobs = No. of actions
@@ -279,7 +279,7 @@ tuple of 2 V/S map of 2
 	map of 2:
 		Keys cannot be repeated, needs to be distinct
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------
 	
 Calling multiple actions
 ========================
@@ -295,7 +295,7 @@ Calling multiple actions
 		All transformation from the very beginning are executed that is why we should use cache and persist
 
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------
 
 cache V/S persist:
 	after doing a bunch of operations we can store the rdd so that future transformations start form here and not from the very beginning.
@@ -329,7 +329,7 @@ NOTE:
 <RDD_name>.toDebugString: to check lineage graph read from bottom to top.
 
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------
 
 repartition V/S coalesce
 ========================
@@ -350,7 +350,7 @@ repartition V/S coalesce
 			local combination of existing partitions if possible => less shuffling 
 
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------
 
 DAG V/S Lineage
 ===============
@@ -364,7 +364,7 @@ DAG V/S Lineage
 		Directed acyclic graph
 		jobs stages tasks
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------
 
 Making a jar file
 =================
@@ -375,9 +375,51 @@ Making a jar file
 			normal without dependencies
 
 		spark-submit --class <classname> /path of jar
+		
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+map V/S mapPartition
+=====================
+	Suppose rdd has 10000 rows in total divided in 10 partitions
+	map
+	---
+		works on each input row
+		rdd.map() -> this will be called 10000 times.
+
+	mapPartition
+	------------
+		works on each partition
+		rdd.mapPartitions() -> this will be called 10 times, as there are only 10 partitions.
+
+-----------------------------------------------------------------------------------------------------------
+
+											SPARK-2
+											=======
+-----------------------------------------------------------------------------------------------------------
+
+Structured API's
+================
+	Dataframes and Datasets
+		Dataframes: Distributed collection of data organized into named columns.
+					Equivalent to a table in sql
+	DF and DS were in spark 1 also, but in spark 2 we get a better support for the same and these are merged into a single API, called datasets api..
+
+	Earlier every context was to be made separately, like spark context, hive context, sql context.
+	Now, it provides everything under 1 unified umbrella- spark session
+	Spark session is a singleton object
+	.builder() will return builder object
+	this will help us configure the spark session.
+	.appName
+	.master
+
+	Treat SparkSession as your driver
+.
+Example DataFramesExample:
 
 
-====================================================================================================================================================================
+=====================================================================================================================================================
+
 Transformation:
 	flatMap
 	map
@@ -386,6 +428,10 @@ Transformation:
 	mapValues
 	flatMapValues
 	repartition
+	join
+	coalesce
+	repartition
+	sortBy
 
 Action
 	collect
@@ -394,6 +440,8 @@ Action
 	take(<a number>)
 	saveAsTextFile("/path")
 	count
+	read
+	//infering schema is another action
 
 
 sortByKey:
